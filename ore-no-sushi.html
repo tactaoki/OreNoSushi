@@ -160,8 +160,11 @@ const rk=maxRecRk(full); // 枚数に応じた固定ランク
 const eaten=G?G.eatenNeta:[];
 const excl=existing.map(e=>e.nm).concat(eaten);
 const pool=NETA_BY_RK[rk].filter(n=>!excl.includes(n.nm));
-if(!pool.length)return null;
-return pool[Math.floor(Math.random()*pool.length)];}
+if(pool.length)return pool[Math.floor(Math.random()*pool.length)];
+// 固定ランクが枯渇した場合は全ランクから選ぶ
+const fallback=NETA_DEF.filter(n=>!excl.includes(n.nm));
+if(!fallback.length)return null;
+return fallback[Math.floor(Math.random()*fallback.length)];}
 
 // 初期おすすめ：水色×3
 function genInitialRecommends(){
