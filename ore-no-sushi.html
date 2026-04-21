@@ -350,9 +350,8 @@ else if(earned>=60){popCol='#4caf50';popSz=26}
 else if(earned>=30){popCol='#fff';popSz=22}
 addPop('+'+earned,popCol,popSz);
 sfxChew();
-// おすすめ更新（なくなった分を即座に補充）
-if(G.recommends.length<1){
-const newR2=pickOneRecommend(G.recommends);if(newR2)G.recommends.push(newR2);}
+// 寿司を食べるたびにおすすめを即座に切り替え
+if(!isRec){G.recommends=[];const newR2=pickOneRecommend(G.recommends);if(newR2)G.recommends.push(newR2);}
 if(G.full===16){bub('そろそろ腹がきつい……',2)}
 if(G.full>=20)setTimeout(startBill,600)}
 
