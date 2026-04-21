@@ -174,7 +174,7 @@ function genInitialRecommends(){
 const rk0=NETA_BY_RK[0];
 const result=[];
 const used=[];
-for(let i=0;i<3;i++){
+for(let i=0;i<1;i++){
 const pool=rk0.filter(n=>!used.includes(n.nm));
 if(!pool.length)break;
 const pick=pool[Math.floor(Math.random()*pool.length)];
@@ -345,7 +345,7 @@ else if(earned>=30){popCol='#fff';popSz=22}
 addPop('+'+earned,popCol,popSz);
 sfxChew();
 // おすすめ更新（非おすすめの場合もなくなった分補充）
-if(G.recommends.length<3){
+if(G.recommends.length<1){
 const newR=pickOneRecommend(G.recommends);
 if(newR)G.recommends.push(newR);}
 if(G.full===16){bub('そろそろ腹がきつい……',2)}
