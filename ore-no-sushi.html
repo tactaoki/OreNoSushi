@@ -266,7 +266,7 @@ else if(k===' ')grab()}});
 window.addEventListener('keyup',e=>{K[e.key.toLowerCase()]=false});
 
 // ===== ACTIONS =====
-function startTea(){G.phase='tea';G.teaT=4;sfxGulp();bub('ゴクゴクゴク……',4)}
+function startTea(){G.phase='tea';G.teaT=3;sfxGulp();bub('ゴクゴクゴク……',3)}
 function startBill(){
 if(G.eaten.length===0){bub('まだ何も食べてないぞ！',2);return}
 G.phase='billing';G.bPhase=0;G.bStep=0;G.bWait=0.8;G.billListDone=false;G.billKeyReady=false;
@@ -295,7 +295,7 @@ if(!best)return;G.lower=G.lower.filter(s=>s!==best);eat(best.data)}
 function eat(neta){
 const ri=neta.rk,price=G.gamePrices[ri],base=PLATES[ri].base;
 G.eaten.push({neta,ri,price});G.eatenNeta.push(neta.nm);G.plateCnt[ri]++;G.totalCost+=price;
-G.irritate=Math.max(0,G.irritate-10);
+G.irritate=Math.max(0,G.irritate-20);
 G.cardFlash[ri]=0.4; // 皿カードフラッシュ
 // ガリ効果：次に食べた皿の値段を確定
 if(G.gariNextReveal){
