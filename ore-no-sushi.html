@@ -322,6 +322,9 @@ if(newR)G.recommends.push(newR);
 }else{
 G.combo=0;G.comboDisp='';
 sfxEatMid();
+const recRk=G.recommends.length>0?G.recommends[0].rk:-1;
+if(ri===recRk){mult=0.8;bub('まあ、値段は一緒だし……',2);}
+else{mult=0.5;bub('とりあえずこれでも食っておくか',2);}
 }
 const earned=Math.round(base*mult);
 // 食べた時の独り言（値段ヒント、おすすめ時はスキップ）
