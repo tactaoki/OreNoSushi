@@ -137,7 +137,7 @@ function rNLane(){
 const prog=G?G.full/20:0;// 0〜1でゲーム進行度
 const ws=NETA_DEF.map(n=>{
 const base=3-n.rk*0.5;
-const late=prog*n.rk*0.3;// 後半ほど高いネタ増
+const late=prog*n.rk*0.8;// 後半ほど高いネタ増
 return Math.max(.05,base+late)});
 for(let i=0;i<30;i++){
 const tot=ws.reduce((a,b)=>a+b,0);let r=Math.random()*tot;let pick=NETA_DEF[0];
