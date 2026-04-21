@@ -215,7 +215,7 @@ irritateSaid:[false,false,false],
 billSaid:false,
 gariUsed:false,gariNextReveal:false,
 bub:'',bubT:0,eaten:[],eatenNeta:[],plateCnt:[0,0,0,0,0,0],
-teaT:0,gari:4,
+teaT:0,gari:3,
 flash:0,flashCol:'',cardFlash:[0,0,0,0,0,0],
 pops:[],beltSpd:22,lastBgmUp:0,
 paused:false,pauseSel:0,
@@ -281,6 +281,10 @@ if(G.gari<=0){sfxBuzz();bub('もうガリはない！',2);return}
 G.gari--;sfxGari();
 G.flash=0.4;G.flashCol='rgba(200,255,200,';
 G.gariNextReveal=true;
+// おすすめを即座に切り替え
+G.recommends=[];
+const newRec=pickOneRecommend(G.recommends);
+if(newRec)G.recommends.push(newRec);
 bub('次のネタの値段が分かる気がする！',3);}
 
 function grab(){
@@ -463,7 +467,7 @@ for(const p of G.pops){const a=Math.min(1,p.life);const py=PIX_OFFSET_Y+(bcy-32)
 OC.globalAlpha=a;OC.font='bold '+p.sz+'px sans-serif';OC.strokeStyle='rgba(0,0,0,.8)';OC.lineWidth=4;OC.strokeText(p.txt,400,py);OC.fillStyle=p.col;OC.fillText(p.txt,400,py);OC.lineWidth=1;OC.globalAlpha=1}
 // ガリ
 OC.font='bold 10px monospace';OC.fillStyle='#ccc';OC.textAlign='center';
-OC.fillText(G.gari+'/4',(bcx+32)*PX,PIX_OFFSET_Y+(bcy+14)*PX+18);
+OC.fillText(G.gari+'/3',(bcx+32)*PX,PIX_OFFSET_Y+(bcy+14)*PX+18);
 // お茶
 if(G.phase==='tea'){OC.fillStyle='rgba(0,0,0,.3)';OC.fillRect(0,0,800,600);OC.fillStyle='#fff';OC.font='bold 20px sans-serif';OC.textAlign='center';OC.fillText('🍵 お茶タイム… '+Math.ceil(G.teaT),400,400)}
 // ポーズ
