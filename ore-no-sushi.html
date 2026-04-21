@@ -311,9 +311,10 @@ G.comboDisp=G.combo>=2?'combo x'+G.combo+'!!':'';
 G.comboDispT=G.combo>=2?2:0;
 // 3連でコンボリセット
 if(G.combo>=3){G.combo=0;G.comboDisp=''}
-// おすすめ補充（3秒後）
+// おすすめ補充（即座）
 G.recommends.splice(recIdx,1);
-setTimeout(()=>{const newR=pickOneRecommend(G.recommends);if(newR)G.recommends.push(newR)},3000);
+const newR=pickOneRecommend(G.recommends);
+if(newR)G.recommends.push(newR);
 }else{
 G.combo=0;G.comboDisp='';
 sfxEatMid();
@@ -345,9 +346,9 @@ else if(earned>=60){popCol='#4caf50';popSz=26}
 else if(earned>=30){popCol='#fff';popSz=22}
 addPop('+'+earned,popCol,popSz);
 sfxChew();
-// おすすめ更新（非おすすめの場合もなくなった分補充、3秒後）
+// おすすめ更新（なくなった分を即座に補充）
 if(G.recommends.length<1){
-setTimeout(()=>{const newR=pickOneRecommend(G.recommends);if(newR)G.recommends.push(newR)},3000);}
+const newR2=pickOneRecommend(G.recommends);if(newR2)G.recommends.push(newR2);}
 if(G.full===16){bub('そろそろ腹がきつい……',2)}
 if(G.full>=20)setTimeout(startBill,600)}
 
