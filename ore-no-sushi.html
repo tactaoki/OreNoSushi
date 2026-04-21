@@ -281,9 +281,9 @@ if(G.gari<=0){sfxBuzz();bub('もうガリはない！',2);return}
 G.gari--;sfxGari();
 G.flash=0.4;G.flashCol='rgba(200,255,200,';
 G.gariNextReveal=true;
-// おすすめを即座に切り替え
-G.recommends=[];
-const newRec=pickOneRecommend(G.recommends);
+// おすすめを即座に切り替え（直前と同じネタは除外）
+const prevRecG=G.recommends.slice();G.recommends=[];
+const newRec=pickOneRecommend(prevRecG);
 if(newRec)G.recommends.push(newRec);
 bub('次のネタの値段が分かる気がする！',3);}
 
@@ -351,7 +351,7 @@ else if(earned>=30){popCol='#fff';popSz=22}
 addPop('+'+earned,popCol,popSz);
 sfxChew();
 // 寿司を食べるたびにおすすめを即座に切り替え
-if(!isRec){G.recommends=[];const newR2=pickOneRecommend(G.recommends);if(newR2)G.recommends.push(newR2);}
+if(!isRec){const prevRec=G.recommends.slice();G.recommends=[];const newR2=pickOneRecommend(prevRec);if(newR2)G.recommends.push(newR2);}
 if(G.full===16){bub('そろそろ腹がきつい……',2)}
 if(G.full>=20)setTimeout(startBill,600)}
 
