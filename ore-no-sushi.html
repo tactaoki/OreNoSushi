@@ -534,17 +534,17 @@ else if(G.cardState[i]===1){OC.fillText(G.cardHint[i],rx+cw/2,ry+38);}
 else{OC.fillText(G.cardHint[i]+'円',rx+cw/2,ry+38);}
 }
 
-// ===== おすすめパネル（3種、横一列）Y=54~114 =====
-const recY=70,recH=48,recW=248,recGap=8;
-const recSX=(800-(3*recW+2*recGap))/2; // =(800-760)/2=20
+// ===== おすすめパネル（1種、中央）Y=54~114 =====
+const recY=70,recH=48,recW=400,recGap=8;
+const recSX=(800-recW)/2;
 // 背景帯（おすすめ）
 OC.fillStyle=UI_BG;OC.fillRect(0,52,800,68);
 // 「本日のおすすめ」ラベル（皿カードとおすすめの間）
 OC.font='bold 14px sans-serif';OC.fillStyle='#ffe066';OC.textAlign='center';
 OC.fillText('⭐ 本日のおすすめ ⭐',400,66);
-for(let i=0;i<3;i++){
+for(let i=0;i<1;i++){
 const rec=G.recommends?G.recommends[i]:null;
-const rx=recSX+i*(recW+recGap);
+const rx=recSX;
 const inLane=rec&&G.lower.some(s=>s.data.nm===rec.nm);
 // パネル背景
 OC.fillStyle='#e0ceb8';
