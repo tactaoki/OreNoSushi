@@ -156,16 +156,10 @@ return 5;}                // 金・銀まで
 // おすすめ1件選ぶ（食べたネタ・現在表示中と被らない）
 function pickOneRecommend(existing){
 const full=G?G.full:0;
-const maxRk=maxRecRk(full);
-// 出現可能なネタ全体から除外リストを引いたプール
+const rk=maxRecRk(full); // 枚数に応じた固定ランク
 const eaten=G?G.eatenNeta:[];
 const excl=existing.map(e=>e.nm).concat(eaten);
-// ランク0〜maxRkの中からランダムに選ぶ（高いランクほど重みを下げる）
-const pool=[];
-for(let rk=0;rk<=maxRk;rk++){
-const w=Math.max(1,maxRk-rk+1); // 低ランクほど重みが高い
-for(const n of NETA_BY_RK[rk]){
-if(!excl.includes(n.nm))for(let i=0;i<w;i++)pool.push(n);}}
+const pool=NETA_BY_RK[rk].filter(n=>!excl.includes(n.nm));
 if(!pool.length)return null;
 return pool[Math.floor(Math.random()*pool.length)];}
 
