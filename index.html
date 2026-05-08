@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>俺の寿司</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: 'Hiragino Sans', 'Meiryo', 'MS Gothic', sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+#wrap { position: relative; }
+canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+#ov { position: absolute; top: 0; left: 0; pointer-events: none; }
+#ui { width: 800px; background: #ab7e4c; padding: 4px 14px 4px; display: none; }
+#keys { color: #fff; font-size: 13px; text-align: center; font-weight: bold; background: #1a1a2a; padding: 5px 8px; width: 800px; }
+.bar-row  { display: flex; align-items: center; margin: 2px 0; }
+.bar-label { color: #bbb; font-size: 12px; width: 58px; text-align: right; margin-right: 6px; font-weight: bold; }
+.bar-outer { flex: 1; height: 14px; background: #222; border-radius: 3px; overflow: hidden; border: 1px solid #333; }
+.bar-inner { height: 100%; border-radius: 2px; transition: width .15s linear, background .2s; }
+#debug-panel {
+  position: fixed; top: 8px; right: 8px;
+  background: rgba(20,20,30,0.92); color: #ddd;
+  font: 12px 'Helvetica', sans-serif;
+  padding: 10px 12px;
+  border: 1px solid #444; border-radius: 4px;
+  z-index: 9999;
+  max-width: 240px;
+  display: none;
+}
+#debug-panel.show { display: block; }
+#debug-panel .dh { font-weight: bold; color: #ffd740; margin-bottom: 6px; font-size: 11px; letter-spacing: 1px; }
+#debug-panel button { background: #2a2a3a; color: #ddd; border: 1px solid #555; padding: 2px 6px; font-size: 11px; cursor: pointer; margin: 1px; border-radius: 2px; }
+#debug-panel button:hover { background: #3a3a4a; }
+#debug-panel select { background: #1a1a2a; color: #ddd; border: 1px solid #555; font-size: 11px; padding: 1px; max-width: 200px; }
+#debug-panel input[type="range"] { width: 130px; vertical-align: middle; }
+#debug-panel label { font-size: 11px; }
+#debug-panel > div { margin: 6px 0; padding-bottom: 4px; border-bottom: 1px solid #2a2a2a; }
+#debug-panel > div:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<!-- ステータスバーと操作説明はキャンバスに描画する方式に移行（render.js の renderStatusBarsCanvas / renderKeysHint） -->
+<div id="ui" style="display:none">
+  <div class="bar-row"><span class="bar-label">満足度</span><div class="bar-outer"><div class="bar-inner" id="barSat"  style="width:0%;background:#f0ad4e"></div></div></div>
+  <div class="bar-row"><span class="bar-label">満腹度</span><div class="bar-outer"><div class="bar-inner" id="barFull" style="width:0%;background:#5cb85c"></div></div></div>
+  <div class="bar-row"><span class="bar-label">イライラ</span><div class="bar-outer"><div class="bar-inner" id="barIrr"  style="width:0%;background:#5bc0de"></div></div></div>
+</div>
+<div id="wrap">
+  <canvas id="c"  width="800" height="600"></canvas>
+  <canvas id="ov" width="800" height="600"></canvas>
+</div>
+<div id="keys" style="display:none">A/D：左右　Space：掴む　Z：お茶　E：ガリ　Q：会計　Esc：ポーズ</div>
+
+<!--
+  シナリオCSV（手動同期方式）
+  scenario.csv を更新したら、その内容をここにも貼り付け直すこと。
+  ダブルクリック起動を維持するため、ブラウザがCSVを直接読み込む形ではなく
+  HTMLに埋め込んでいる。
+-->
+<script type="text/plain" id="scenario-data">
+ステージ,シーン,種別,話者,表情,テキスト,メモ
+PROLOGUE,-,ナレーション,,,"──寿司の話をしよう
+　　少しだけ、長い話だ──","作品全体のテーマ
+ステージ１開始前に表示"
+PROLOGUE,-,フェード,暗転,,,
+,,,,,,
+Stage1,OPEN,背景,,,bg_cheap,
+Stage1,OPEN,フェード,明転,,,
+Stage1,OPEN,ナレーション,,,腹が減った……,"22歳
+安い皿のみ"
+Stage1,OPEN,ナレーション,,,"しかし時間もあまりない
+それに何より金がない","22歳
+安い皿のみ"
+Stage1,OPEN,ナレーション,,,"しかし、そんな時に頼りになるやつ……
+そう、回転寿司だ……！","22歳
+安い皿のみ"
+Stage1,OPEN,キャラ,主人公,normal,登場,
+Stage1,OPEN,セリフ,俺,normal,腹いっぱい食うぞ〜！,
+Stage1,OPEN,キャラ,親方,normal,登場,
+Stage1,OPEN,セリフ,親方,normal,"……初めてかい？
+大丈夫かい、うちは全ネタ時価だぜ？",
+Stage1,OPEN,セリフ,俺,angry,"じ、時価だって？
+それじゃあ食べてみるまで
+値段が分からないじゃないか！",
+Stage1,OPEN,セリフ,親方,normal,"その代わり味は保証するぜ？
+安くて美味いネタばかり揃えている
+お前さんの目が確かなら、満足できるはずさ",
+Stage1,OPEN,セリフ,俺,happy,"面白え！
+とっとと食わせてくれ！",
+Stage1,OPEN,セリフ,親方,smile,"……はは
+せいぜい食い過ぎには注意するこった",
+Stage1,OPEN,フェード,暗転,,,
+,,,,,,
+Stage1,CLEAR,背景,,,bg_cheap,
+Stage1,CLEAR,フェード,明転,,,
+Stage1,CLEAR,キャラ,主人公,happy,登場,
+Stage1,CLEAR,キャラ,親方,smile,登場,
+Stage1,CLEAR,セリフ,俺,happy,"美味かった！
+しっかりと満足したぜ！！",
+Stage1,CLEAR,セリフ,親方,smile,"ほう、ちゃんと時価のネタを
+見極めたのか……
+若いのに大したもんだ",
+Stage1,CLEAR,フェード,暗転,,,
+,,,,,,
+Stage1,RETRY,背景,,,bg_cheap,
+Stage1,RETRY,フェード,明転,,,
+Stage1,RETRY,キャラ,主人公,angry,登場,
+Stage1,RETRY,キャラ,親方,normal,登場,
+Stage1,RETRY,セリフ,俺,angry,くそ、もう一回だ！！,
+Stage1,RETRY,セリフ,親方,normal,"金がないんだろ？　腹が減ってるんだろ？
+無闇に高いネタに手を出すくらいなら
+安いネタで妥協するのも手だ……",
+Stage1,RETRY,フェード,暗転,,,
+,,,,,,
+Inter,-,ナレーション,,,そうやって、俺と大将の寿司の物語は始まった……,ステージ１クリア時に表示
+,,,,,,
+Stage2,OPEN,背景,,,bg_medium,
+Stage2,OPEN,フェード,明転,,,
+Stage2,OPEN,ナレーション,,,"あれから何年経ったろうか……
+少しは懐に余裕が出てきた、
+久しぶりにあの店に行くか","30代の説明
+お茶が使える"
+Stage2,OPEN,キャラ,主人公,normal,登場,
+Stage2,OPEN,セリフ,俺,normal,"この店もずいぶん繁盛してきたな。
+高いネタも置くようになったじゃないか。",
+Stage2,OPEN,キャラ,親方,normal,登場,
+Stage2,OPEN,セリフ,親方,normal,"おう、ちょっとは大人になったな
+まあ、おかげさんでぼちぼちやってるよ
+まずはお茶でもどうだ？",
+Stage2,OPEN,セリフ,俺,normal,"お茶？
+そんなもん要らないぜ！
+寿司だけでまた満足してみせる！",
+Stage2,OPEN,セリフ,親方,normal,"まあ、そういうな
+気になったネタが流れてこない時に
+お茶でも飲んで待つのも大人の嗜みってもんだ",
+Stage2,OPEN,フェード,暗転,,,
+,,,,,,
+Stage2,CLEAR,背景,,,bg_medium,
+Stage2,CLEAR,フェード,明転,,,
+Stage2,CLEAR,キャラ,主人公,happy,登場,
+Stage2,CLEAR,キャラ,親方,smile,登場,
+Stage2,CLEAR,セリフ,俺,happy,バッチリ満足できたぜ！,
+Stage2,CLEAR,セリフ,親方,smile,"高いネタやお茶も使いこなして……
+やるじゃないか",
+Stage2,CLEAR,フェード,暗転,,,
+,,,,,,
+Stage2,RETRY,背景,,,bg_medium,
+Stage2,RETRY,フェード,明転,,,
+Stage2,RETRY,キャラ,主人公,angry,登場,
+Stage2,RETRY,キャラ,親方,normal,登場,
+Stage2,RETRY,セリフ,俺,angry,くそ……こんなはずじゃ！！,
+Stage2,RETRY,セリフ,親方,normal,"ふふ……熱くなったらしめえよ
+お茶を飲んで、じっくりやるんだ……",
+Stage2,RETRY,フェード,暗転,,,
+,,,,,,
+Stage3,OPEN,背景,,,bg_fancy,
+Stage3,OPEN,フェード,明転,,,
+Stage3,OPEN,ナレーション,,,"気づけば俺も中間管理職
+ストレスが溜まることばっかりだ
+せめて美味い寿司でも食いたいもんだ","40代の説明
+ガリが使える。
+イライラの上昇が早い"
+Stage3,OPEN,キャラ,主人公,normal,登場,
+Stage3,OPEN,キャラ,親方,serious,登場,
+Stage3,OPEN,セリフ,俺,normal,"おお……随分と豪華な店になったもんだ
+それなりのお値段しそうだが……
+まあ、今の俺なら払えるだろう",
+Stage3,OPEN,セリフ,親方,serious,"ガリ、置いておくよ
+口の中をリセットできる
+うまく使いな",
+Stage3,OPEN,フェード,暗転,,,
+,,,,,,
+Stage3,CLEAR,背景,,,bg_fancy,
+Stage3,CLEAR,フェード,明転,,,
+Stage3,CLEAR,キャラ,主人公,normal,登場,
+Stage3,CLEAR,キャラ,親方,smile,登場,
+Stage3,CLEAR,セリフ,俺,happy,"美味かったよ、大将！
+今回も満足だ……",
+Stage3,CLEAR,セリフ,親方,smile,"味と値段の見極めが抜群だな……
+次来る時はもっと高いネタを用意しておくよ",
+Stage3,CLEAR,フェード,暗転,,,
+,,,,,,
+Stage3,RETRY,背景,,,bg_fancy,
+Stage3,RETRY,フェード,明転,,,
+Stage3,RETRY,キャラ,主人公,angry,登場,
+Stage3,RETRY,キャラ,親方,normal,登場,
+Stage3,RETRY,セリフ,俺,angry,く……俺としたことが……！,
+Stage3,RETRY,セリフ,親方,normal,"焦っちゃダメさ
+食べたいネタがなかったら
+ガリやお茶をうまく使うんだ……",
+Stage3,RETRY,フェード,暗転,,,
+,,,,,,
+Stage4,OPEN,背景,,,bg_rich,
+Stage4,OPEN,フェード,明転,,,
+Stage4,OPEN,ナレーション,,,"気づけば俺も50代
+あと何年働くんだろうな？
+久しぶりにあの店の寿司が食いたくなった……","50代の説明
+全機能解放"
+Stage4,OPEN,キャラ,主人公,normal,登場,
+Stage4,OPEN,セリフ,俺,normal,"この店もずいぶんと長いな
+気づけば俺もなかなかな年になっちまった
+今日は、究極の満足を目指したい……",
+Stage4,OPEN,キャラ,親方,serious,登場,
+Stage4,OPEN,セリフ,親方,serious,"ずいぶんといいツラになったな
+今のお前に負けないだけの店だと言えるぜ
+今は全てのネタが揃ってる、ガリもお茶もな",
+Stage4,OPEN,フェード,暗転,,,
+,,,,,,
+Stage4,CLEAR,背景,,,bg_rich,
+Stage4,CLEAR,フェード,明転,,,
+Stage4,CLEAR,キャラ,主人公,happy,登場,
+Stage4,CLEAR,キャラ,親方,smile,登場,
+Stage4,CLEAR,セリフ,俺,happy,"完璧な寿司だったよ……
+次、来るまで、元気でいてくれよ？",
+Stage4,CLEAR,セリフ,親方,smile,"さあて……どうかな？
+もうぼちぼち俺も引退だよ",
+Stage4,CLEAR,フェード,暗転,,,
+,,,,,,
+Stage4,RETRY,背景,,,bg_rich,
+Stage4,RETRY,フェード,明転,,,
+Stage4,RETRY,キャラ,主人公,sad,登場,
+Stage4,RETRY,キャラ,親方,normal,登場,
+Stage4,RETRY,セリフ,俺,sad,"俺もまだまだだな……
+この歳で、そんなことを思えることがある
+ありがたいとも言えるな……",
+Stage4,RETRY,セリフ,親方,normal,"おすすめのネタを連続で狙ってみろ
+満足度が跳ね上がるんだ……",
+Stage4,RETRY,フェード,暗転,,,
+,,,,,,
+Inter,-,ナレーション,,,"そして、長い月日の果てに……
+俺と大将の寿司の物語に一つの終わりが訪れる",ステージ４クリア時に表示
+,,,,,,
+Stage5,OPEN,背景,,,bg_underpass,
+Stage5,OPEN,フェード,明転,,,
+Stage5,OPEN,ナレーション,,,"特別な日でも、なんでもない
+ただ、今日で会社を定年退職するってだけだ
+だから、あの寿司が食いたかった……","60代・定年の日
+イライラなし。
+ベルト遅い。回想"
+Stage5,OPEN,キャラ,主人公,normal,登場,
+Stage5,OPEN,セリフ,俺,normal,"移転したのか
+すっかりこじんまりしたな……",
+Stage5,OPEN,キャラ,親方,normal,登場,
+Stage5,OPEN,セリフ,親方,smile,"……今の俺にはこれくらいがちょうどいい
+多分、お前さんにもな",
+Stage5,OPEN,セリフ,俺,happy,"はは、言うじゃないか
+まあ、そうかもしれねえ",
+Stage5,OPEN,セリフ,親方,normal,"普段はもう高いネタは置いてないんだけどな
+なんとなく、今日はお前さんが来ると思って……
+昔のネタも全部仕込んでおいたよ",
+Stage5,OPEN,フェード,暗転,,,
+,,,,,,
+Stage5,FADEOUT_LINES,セリフ,,,……うん、相変わらずいい味だ,食べるごとに順次表示
+Stage5,FADEOUT_LINES,セリフ,,,いつ食べても、変わらないな,
+Stage5,FADEOUT_LINES,セリフ,,,大将の仕事は、嘘がねえ,
+Stage5,FADEOUT_LINES,セリフ,,,ガキの頃の俺に、この味わかってたのかね,
+Stage5,FADEOUT_LINES,セリフ,,,思えば、長いこと通ったもんだ,
+Stage5,FADEOUT_LINES,セリフ,,,いい人生だった、と言える気がするよ,
+Stage5,FADEOUT_LINES,セリフ,,,寿司ってのは、不思議なもんだな,
+Stage5,FADEOUT_LINES,セリフ,,,何も言わなくていい、何も,
+Stage5,FADEOUT_LINES,セリフ,,,腹は満たされる。心も満たされる,
+Stage5,FADEOUT_LINES,セリフ,,,……ありがとな、大将,
+,,,,,,
+Stage5,FADEOUT_CENTER,セリフ,,,これが……俺の寿司だ,完全ホワイトアウト後に画面中央へフェードイン
+,,,,,,
+Stage5,RETRY,背景,,,bg_underpass,
+Stage5,RETRY,フェード,明転,,,
+Stage5,RETRY,キャラ,主人公,normal,登場,
+Stage5,RETRY,キャラ,親方,normal,登場,
+Stage5,RETRY,セリフ,俺,normal,"もうちょっとだけ、いいかい？
+大将……",
+Stage5,RETRY,セリフ,親方,normal,"……ああ
+ゆっくりやんな",
+Stage5,RETRY,フェード,暗転,,,
+,,,,,,
+Ending,-,ナレーション,,,"やっとわかったんだ
+人の数だけ寿司はある
+寿司ってのは……自由なんだ","ステージ5クリア時に表示
+スペース押下後、画面中央に Stage5_FADEOUT_CENTER のテキストを表示してFINへ"</script>
+
+<!--
+  ステージ別パラメーター（手動同期方式）
+  stage-config.csv を更新したらここにも貼り付け直すこと。
+-->
+<script type="text/plain" id="stage-config-data">
+stage,age,label,maxPlateRank,budget,irritateRate,beltSpeed,maxFull,scoreMode,tea,gari,fadeout
+1,20,新卒,2,3300,1,52,25,quantity,FALSE,FALSE,FALSE
+2,30,30代,3,3700,3,56,22,costperformance,TRUE,FALSE,FALSE
+3,40,40代,4,5000,8,62,20,price,TRUE,TRUE,FALSE
+4,50,50代,5,6000,4,56,15,combo,TRUE,TRUE,FALSE
+5,60,定年,5,0,1,36,999,freeplay,TRUE,TRUE,TRUE
+</script>
+
+<!--
+  ステージ別ヒント（手動同期方式）
+  stage-hints.csv を更新したらここにも貼り付け直すこと。
+-->
+<script type="text/plain" id="stage-hints-data">
+stage,hint
+1,おすすめを連続で食べると、満足度がぐんぐん増えるぜ。
+1,会計が気になるなら、無理におすすめを食べないのも手だ。安く腹が膨れるぜ。
+1,あんた、若いからな。しっかり食べないと最終的な満足度が下がるぜ。
+1,今のあんたなら、会計は3300円くらいに抑えたいよな？わかるぜ。
+2,イライラするならお茶でも飲んで待つがいいさ。
+2,イライラが溜まってくると、満足度が減り続けるぜ。気をつけな。
+2,気になったネタが流れねえ時、お茶を飲んで待つのも大人ってもんだ。
+2,今のあんたなら、予算は……3700円ってところか？
+3,ガリを食いな。口の中がさっぱりして違うものが食いたくなるぜ？
+3,今なら5000円くらいの会計、どうってことないだろう？
+3,今のお前さんは、昔より気が立ちやすい。気をつけな。
+3,前より食えなくなったろう？　歳をとるって、そう言うことさ。
+4,ガリもある、お茶もある。高級ネタも全部ある……さあ、どうする？
+4,後半になるほどレーンに高いネタが流れてくる。狙えよ。
+4,今なら予算は……そうさな6000円ってところか？
+4,食べれる量が減ってきてる……少ない皿数できっちりと満足しないとな……
+5,もう値段なんざ気にしなくていい……好きに食え。
+5,気づけば、お互い老けちまったなあ……
+5,寿司って、いいよなあ……あんたもそう思うだろ？
+5,ありがとな、お前さん。長いこと通ってくれて。
+</script>
+
+<!--
+  ネタ別パラメーター（手動同期方式、ランクごとの基本価格・基本満足度）
+  neta-base.csv を更新したらここにも貼り付け直すこと。
+-->
+<script type="text/plain" id="neta-base-data">
+filename,name,rank,plate,base_price,base_satisfaction,gunkan
+natto,納豆巻,0,水色皿,100,30,TRUE
+kappa,カッパ巻,0,水色皿,100,30,TRUE
+tunamayo,ツナマヨ,0,水色皿,100,30,TRUE
+tamago,タマゴ,0,水色皿,100,30,FALSE
+kohada,コハダ,0,水色皿,100,30,FALSE
+shimesaba,シメサバ,1,緑色皿,200,45,FALSE
+ika,イカ,1,緑色皿,200,45,FALSE
+ebi,エビ,1,緑色皿,200,45,FALSE
+maguro,マグロ,1,緑色皿,200,45,FALSE
+salmon,サーモン,1,緑色皿,200,45,FALSE
+aji,アジ,2,黄色皿,300,55,FALSE
+katsuo,カツオ,2,黄色皿,300,55,FALSE
+engawa,エンガワ,2,黄色皿,300,55,FALSE
+hotate,ホタテ,2,黄色皿,300,55,FALSE
+tai,タイ,3,赤色皿,400,60,FALSE
+unagi,ウナギ,3,赤色皿,400,60,FALSE
+kanpachi,カンパチ,3,赤色皿,400,60,FALSE
+chutoro,中トロ,4,銀色皿,500,70,FALSE
+zuwaikani,ズワイガニ,4,銀色皿,500,70,FALSE
+otoro,大トロ,5,金色皿,800,80,FALSE
+uni,ウニ,5,金色皿,800,80,TRUE
+</script>
+
+<!-- 読み込み順は依存に従う：
+     audio → storage → stage-config → ui → render → vn-engine → game-logic（最後にループ起動） -->
+<script src="js/util.js"></script>
+<script src="js/sfx-manifest.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/debug.js"></script>
+<script src="js/stage-config.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/render.js"></script>
+<script src="js/vn-engine.js"></script>
+<script src="js/game-logic.js"></script>
+</body>
+</html>
