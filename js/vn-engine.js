@@ -85,6 +85,7 @@ function parseAndStoreScenario(text) {
   }
   scenario.loaded = true;
   console.log(`[VN] シナリオロード完了: ${scenario.scenes.size} シーン, 行数=${rows.length}`);
+  console.log(`[VN] シーンキー: ${[...scenario.scenes.keys()].join(', ')}`);
 }
 
 // ===== VN状態 =====
@@ -155,6 +156,14 @@ function updateVN(dt) {
 
 // ===== VN描画 =====
 function renderVN() {
+  // 描画状態を防衛的に初期化（前段の描画が状態を汚していた場合の保険）
+  overlayCtx.save();
+  overlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+  overlayCtx.globalAlpha = 1;
+  overlayCtx.filter = 'none';
+  overlayCtx.textAlign = 'left';
+  overlayCtx.textBaseline = 'alphabetic';
+
   // 背景：fadeoutステージのフェード完了後は白
   if (game.config?.fadeout && game.fadeoutTriggered) {
     gameCtx.fillStyle = '#fff';
@@ -184,6 +193,8 @@ function renderVN() {
 
   // ダイアログ（フェードの上 → 常に見える）
   if (vn.dialog) renderVNDialog();
+
+  overlayCtx.restore();
 }
 
 function drawVNChar(x, name, expression, dimmed) {
