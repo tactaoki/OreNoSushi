@@ -1,12 +1,21 @@
 // ===== 音声基盤 =====
 let audioCtx;
+let debugMuted = false;  // デバッグパネル表示中は true（debug.js から制御）
 
 function resumeAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
+function setDebugMuted(muted) {
+  debugMuted = !!muted;
+  if (currentBgmAudio) {
+    currentBgmAudio.volume = debugMuted ? 0 : bgmVolume * BGM_BASE_VOLUME;
+  }
+}
+
 function tone(freq, duration, type, volume, delay) {
+  if (debugMuted) return;
   if (!audioCtx) return;
   // volume===0 のとき falsy フォールバックで意図せず鳴ってしまうのを防ぐ
   const v = (volume === undefined || volume === null) ? 0.04 : volume;
@@ -25,6 +34,7 @@ function tone(freq, duration, type, volume, delay) {
 }
 
 function playNoise(duration, volume, delay) {
+  if (debugMuted) return;
   if (!audioCtx) return;
   const startTime = audioCtx.currentTime + (delay || 0);
   const src = audioCtx.createBufferSource();
@@ -59,6 +69,7 @@ const SFX_AUDIO = {};
 
 // ファイルが登録されていれば再生して true を返す。無ければ false（→ 呼び出し側で合成音を鳴らす）
 function playSfxFile(key) {
+  if (debugMuted) return true;  // フォールバック合成音も鳴らさない
   if (!audioInitialized) return false;
   const audio = SFX_AUDIO[key];
   if (!audio) return false;
@@ -154,7 +165,7 @@ function startBGM(name) {
   // ファイル優先
   const audio = BGM_AUDIO[name];
   if (audio && audioInitialized) {
-    audio.volume = bgmVolume * BGM_BASE_VOLUME;
+    audio.volume = debugMuted ? 0 : bgmVolume * BGM_BASE_VOLUME;
     audio.currentTime = 0;
     audio.play().catch(() => {});
     currentBgmAudio = audio;

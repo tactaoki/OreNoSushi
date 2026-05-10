@@ -342,13 +342,21 @@ function initDebugPanel() {
   }
 }
 
+function syncDebugMute() {
+  const panel = document.getElementById('debug-panel');
+  const muted = !!(panel && panel.classList.contains('show'));
+  if (typeof setDebugMuted === 'function') setDebugMuted(muted);
+}
+
 function toggleDebugPanel() {
   if (!debugPanelInitialized) {
     initDebugPanel();  // 初回は生成して表示
+    syncDebugMute();
     return;
   }
   const panel = document.getElementById('debug-panel');
   if (panel) panel.classList.toggle('show');
+  syncDebugMute();
 }
 
 // F1 でデバッグパネルを表示/非表示トグル
@@ -361,5 +369,5 @@ window.addEventListener('keydown', e => {
 
 // ?debug=1 で起動した場合のみ自動でパネル表示（シナリオ読み込み後）
 window.addEventListener('load', () => {
-  if (DEBUG_PARAMS.enabled) initDebugPanel();
+  if (DEBUG_PARAMS.enabled) { initDebugPanel(); syncDebugMute(); }
 });

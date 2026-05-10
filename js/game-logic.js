@@ -364,7 +364,8 @@ window.addEventListener('keydown', e => {
       if (vn.fadeCb) { const cb = vn.fadeCb; vn.fadeCb = null; cb(); }
     } else if (vn.waitInput) {
       vn.waitInput = false;
-      vn.dialog = null;
+      // vn.dialog はクリアしない：次のセリフ/シーン開始で上書きされる。
+      // これによりフェードアウト中も最後のダイアログが残って一緒にフェードする。
       processVNEvent();
     }
     return;
@@ -377,19 +378,24 @@ window.addEventListener('keydown', e => {
       stopBGM();
       return;
     }
-    // タイトルとステージ選択は同じBGM(Title.mp3)を共有するので、停止せず継続
-    game.phase = 'stageselect';
-    stageSelectCursor = 0;
+    // フラッシュ進行中は無視（連打防止）
+    if (titleFlashTimer > 0) return;
+    // 軽くフラッシュ → タイマー終了で stageselect へ遷移
+    titleFlashTimer = 0.35;
+    game.titleExiting = true;
     return;
   }
 
   if (game.phase === 'stageselect') {
     if (performance.now() < (game.stageSelectGuardUntil || 0)) return;
+    const prevCursor = stageSelectCursor;
     if (k === 'a' || k === 'arrowleft')  stageSelectCursor = Math.max(0, stageSelectCursor - 1);
     if (k === 'd' || k === 'arrowright') stageSelectCursor = Math.min(4, stageSelectCursor + 1);
+    if (stageSelectCursor !== prevCursor) sfxEatMid();
     if (k === ' ') {
       const sel = stageSelectCursor + 1;
       if (sel <= unlockedStages) {
+        sfxEatGreat();
         currentStage = sel;
         // 前回プレイの状態をリセット（特に Stage5 fadeout 後の残留が
         // 次の VN 描画を白くしてしまうのを防ぐ）
@@ -405,8 +411,12 @@ window.addEventListener('keydown', e => {
 
   if (game.phase === 'choice') {
     if (performance.now() < (game.choiceGuardUntil || 0)) return;
-    if (k === 'a' || k === 'arrowleft' || k === 'd' || k === 'arrowright') game.choiceSel = 1 - game.choiceSel;
+    if (k === 'a' || k === 'arrowleft' || k === 'd' || k === 'arrowright') {
+      game.choiceSel = 1 - game.choiceSel;
+      sfxEatMid();
+    }
     if (k === ' ') {
+      sfxEatGreat();
       if (game.choiceSel === 0) {
         newGame();
       } else {
@@ -423,8 +433,14 @@ window.addEventListener('keydown', e => {
   }
 
   if (game.paused) {
-    if (k === 'a' || k === 'arrowleft' || k === 'd' || k === 'arrowright') game.pauseSel = 1 - game.pauseSel;
-    if (k === ' ') { if (game.pauseSel === 0) game.paused = false; else newGame(); }
+    if (k === 'a' || k === 'arrowleft' || k === 'd' || k === 'arrowright') {
+      game.pauseSel = 1 - game.pauseSel;
+      sfxEatMid();
+    }
+    if (k === ' ') {
+      sfxEatGreat();
+      if (game.pauseSel === 0) game.paused = false; else newGame();
+    }
     if (k === 'escape') game.paused = false;
     return;
   }
@@ -735,7 +751,17 @@ function eat(neta) {
 function update(dt) {
   if (game.paused) return;
 
-  if (titleFlashTimer > 0) titleFlashTimer = Math.max(0, titleFlashTimer - dt);
+  if (game.phase !== 'title') titleStartTime = null;
+
+  if (titleFlashTimer > 0) {
+    titleFlashTimer = Math.max(0, titleFlashTimer - dt);
+    if (titleFlashTimer === 0 && game.phase === 'title' && game.titleExiting) {
+      game.titleExiting = false;
+      // タイトルとステージ選択は同じBGM(Title.mp3)を共有するので、停止せず継続
+      game.phase = 'stageselect';
+      stageSelectCursor = 0;
+    }
+  }
 
   if (game.phase === 'vn') { updateVN(dt); return; }
 

@@ -41,6 +41,69 @@ STAGE_BASE_IMG.onload  = () => { STAGE_BASE_LOADED = true; };
 STAGE_BASE_IMG.onerror = () => { STAGE_BASE_LOADED = false; };
 STAGE_BASE_IMG.src = 'assets/images/ui/stage_base.png';
 
+// タイトル画面の全面背景画像
+const TITLE_BG_IMG = new Image();
+let TITLE_BG_LOADED = false;
+TITLE_BG_IMG.onload  = () => { TITLE_BG_LOADED = true; };
+TITLE_BG_IMG.onerror = () => { TITLE_BG_LOADED = false; };
+TITLE_BG_IMG.src = 'assets/images/backgrounds/title/title.png';
+let titleStartTime = null;
+
+// プレイ画面用主人公スプライト（年齢別、体・頭のみ。右腕は既存のドット絵描画を維持）
+// パスは js/sprite-manifest.js（update-sprites.command で生成）から参照。
+// マニフェスト未生成 or 画像なしの場合は drawHead/drawBody のドット絵にフォールバック。
+
+// PNG使用時の右肩オフセット（bcx, bcy 基準・ドット絵座標）。画像に合わせて微調整。
+const PLAYER_PNG_SHOULDER_DX = 10;
+const PLAYER_PNG_SHOULDER_DY = -8;
+const ORE_PLAY_AGES = [20, 30, 40, 50, 60];
+const ORE_PLAY_SPRITES = {};
+const ORE_PLAY_LOADED  = {};
+for (const age of ORE_PLAY_AGES) {
+  const path = (typeof SPRITE_MANIFEST !== 'undefined') ? SPRITE_MANIFEST[age] : null;
+  if (!path) { ORE_PLAY_LOADED[age] = false; continue; }
+  const img = new Image();
+  ORE_PLAY_SPRITES[age] = img;
+  ORE_PLAY_LOADED[age]  = false;
+  img.onload  = () => { ORE_PLAY_LOADED[age] = true; };
+  img.onerror = () => { ORE_PLAY_LOADED[age] = false; };
+  img.src = path;
+}
+
+// 右手スプライト（全ステージ共通、×4倍表示）。なければドット絵の手にフォールバック。
+let RIGHT_HAND_IMG = null;
+let RIGHT_HAND_IMG_LOADED = false;
+{
+  const path = (typeof RIGHT_HAND_PATH !== 'undefined') ? RIGHT_HAND_PATH : null;
+  if (path) {
+    const img = new Image();
+    RIGHT_HAND_IMG = img;
+    img.onload  = () => { RIGHT_HAND_IMG_LOADED = true; };
+    img.onerror = () => { RIGHT_HAND_IMG_LOADED = false; };
+    img.src = path;
+  }
+}
+
+// アイテムスプライト（湯呑み・ガリ皿・ガリ本体、×4倍表示）
+const ITEM_IMG = { tea: null, gariplate: null, gari: null };
+const ITEM_LOADED = { tea: false, gariplate: false, gari: false };
+{
+  const itemPaths = {
+    tea:       (typeof TEA_PATH       !== 'undefined') ? TEA_PATH       : null,
+    gariplate: (typeof GARIPLATE_PATH !== 'undefined') ? GARIPLATE_PATH : null,
+    gari:      (typeof GARI_PATH      !== 'undefined') ? GARI_PATH      : null,
+  };
+  for (const key in itemPaths) {
+    const path = itemPaths[key];
+    if (!path) continue;
+    const img = new Image();
+    ITEM_IMG[key] = img;
+    img.onload  = () => { ITEM_LOADED[key] = true; };
+    img.onerror = () => { ITEM_LOADED[key] = false; };
+    img.src = path;
+  }
+}
+
 // 会計画面の背景PNG
 const GAME_END_BG_IMG = new Image();
 let GAME_END_BG_LOADED = false;
@@ -182,17 +245,23 @@ function drawLeftArm(bodyX, bodyY, targetX, targetY) {
   drawPixel(targetX + 6, targetY - 4,  2, 3, '#ccc');
 }
 
-function drawRightArm(handX, bodyX, bodyY) {
-  const sleeve = '#444', skin = '#dba87a', skinDark = '#c49060';
-  const sx = bodyX + 9, sy = bodyY + 4, hy = LOWER_BELT_Y + 4;  // 手の中心を下ベルト内（91〜98の中央寄り）
-  for (let i = 0; i < 10; i++) {
-    const t = i / 9;
-    drawPixel((sx + (handX - sx) * t) | 0, (sy + (hy - sy) * t) | 0, 4, 3, sleeve);
+function drawRightArm(handX, bodyX, bodyY, shoulderDX, shoulderDY, skipHand) {
+  const sleeve = '#696a6a', skin = '#dba87a', skinDark = '#c49060';
+  const sx = bodyX + (shoulderDX ?? 9), sy = bodyY + (shoulderDY ?? 4), hy = LOWER_BELT_Y + 4;  // 手の中心を下ベルト内（91〜98の中央寄り）
+  // 肩→手の距離に応じてスタンプ数を増やし、腕が伸びても隙間ができないように補完
+  const adx = handX - sx, ady = hy - sy;
+  const dist = Math.sqrt(adx * adx + ady * ady);
+  const n = Math.max(10, Math.ceil(dist));   // 1px間隔で配置
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    drawPixel((sx + adx * t) | 0, (sy + ady * t) | 0, 4, 3, sleeve);
   }
-  drawPixel(handX - 4, hy - 3, 9, 6, skin);
-  drawPixel(handX - 4, hy - 2, 1, 4, skinDark);
-  drawPixel(handX + 4, hy - 2, 1, 4, skinDark);
-  drawPixel(handX - 3, hy + 3, 7, 1, skinDark);
+  if (!skipHand) {
+    drawPixel(handX - 4, hy - 3, 9, 6, skin);
+    drawPixel(handX - 4, hy - 2, 1, 4, skinDark);
+    drawPixel(handX + 4, hy - 2, 1, 4, skinDark);
+    drawPixel(handX - 3, hy + 3, 7, 1, skinDark);
+  }
 }
 
 function drawGari(cx, cy, count) {
@@ -296,15 +365,55 @@ function render() {
   }
 
   const bcx = 100, bcy = BODY_CENTER_Y;
+  const playerAge    = game.config?.age ?? 20;
+  const playerImg    = ORE_PLAY_SPRITES[playerAge];
+  const playerLoaded = ORE_PLAY_LOADED[playerAge];
+
   // 右手・右腕は最前面に描くため、ここでは描かない（後段でPNG寿司の上に重ねる）
-  drawLeftArm(bcx, bcy, 75, bcy + 18);
-  if (game.phase === 'tea') { drawPixel(74, bcy + 9, 1, 1, '#aaa'); drawPixel(76, bcy + 7, 1, 1, '#bbb'); }
-  drawBody(bcx, bcy);
-  drawHead(bcx, bcy - 8);
-  if (game.config?.gari) drawGari(bcx + 32, bcy + 14, game.gari);
+  // 体・頭はPNGがあれば後段で描画。無ければここでドット絵を描く
+  if (!(playerImg && playerLoaded)) {
+    drawBody(bcx, bcy);
+    drawHead(bcx, bcy - 8);
+  }
+  // ガリ皿・本体PNGが両方あれば後段でgameCanvasに描画。無ければドット絵フォールバック
+  const usePngGari = ITEM_IMG.gariplate && ITEM_LOADED.gariplate && ITEM_IMG.gari && ITEM_LOADED.gari;
+  if (game.config?.gari && !usePngGari) drawGari(bcx + 32, bcy + 14, game.gari);
 
   // pixelCanvas → gameCanvas（200×150 → 800×600 に×4倍。透明領域は背景PNGがそのまま見える）
   gameCtx.drawImage(pixelCanvas, 0, 0, 200, 150, 0, 0, 800, 600);
+
+  // 主人公スプライトはここでは描画しない（右腕の後に移動）
+
+  // アイテムスプライト：ガリ皿・ガリ本体・湯呑み（×4倍拡大、画像中心が指定座標に来る）
+  gameCtx.imageSmoothingEnabled = false;
+  if (game.config?.gari && usePngGari) {
+    // ガリ本体（count個並べる）— 先に描いて皿の下になるように
+    const bodyImg = ITEM_IMG.gari;
+    const bw = bodyImg.naturalWidth  * PX;
+    const bh = bodyImg.naturalHeight * PX;
+    const startCx = (bcx + 36-4) * PX;  // 既存ロジックの cx-3
+    const bcyy    = (bcy - 15)     * PX;
+    for (let i = 0; i < game.gari; i++) {
+      const cx = startCx + i * 4 * PX;     // 4px間隔（pixelCanvas単位） → ×4で16px
+      gameCtx.drawImage(bodyImg, Math.round(cx - bw / 2), Math.round(bcyy - bh / 2), bw, bh);
+    }
+    // ガリ皿（後に描いて手前になる）
+    const plateImg = ITEM_IMG.gariplate;
+    const pw = plateImg.naturalWidth  * PX;
+    const ph = plateImg.naturalHeight * PX;
+    const pcx = (bcx + 36) * PX;
+    const pcy = (bcy - 18) * PX;
+    gameCtx.drawImage(plateImg, Math.round(pcx - pw / 2), Math.round(pcy - ph / 2), pw, ph);
+  }
+  // 湯呑み（お茶解放ステージのみ、ガリ皿の左隣）
+  if (game.config?.tea && ITEM_IMG.tea && ITEM_LOADED.tea) {
+    const teaImg = ITEM_IMG.tea;
+    const tw = teaImg.naturalWidth  * PX;
+    const th = teaImg.naturalHeight * PX;
+    const tcx = (bcx + 24) * PX;  // ガリ皿の左隣
+    const tcy = (bcy - 14) * PX;
+    gameCtx.drawImage(teaImg, Math.round(tcx - tw / 2), Math.round(tcy - th / 2), tw, th);
+  }
 
   // 奥レーンのPNGスプライトを gameCanvas に縮小描画（皿の下端をベルト下端に合わせる、24×16）
   const UPPER_PLATE_BOTTOM_Y = (UPPER_BELT_Y + 7) * PX + PIXEL_OFFSET_Y;
@@ -339,10 +448,46 @@ function render() {
     }
   }
 
-  // 右手・右腕を最前面に描画（PNG寿司スプライトの上に重なる）
+  // 右手・右腕を描画（後から主人公スプライトを上に重ねる）
+  const useHandImg = RIGHT_HAND_IMG && RIGHT_HAND_IMG_LOADED;
   pixelCtx.clearRect(0, 0, 200, 150);
-  drawRightArm(game.handX | 0, bcx, bcy);
+  if (playerImg && playerLoaded) {
+    drawRightArm(game.handX | 0, bcx, bcy, PLAYER_PNG_SHOULDER_DX, PLAYER_PNG_SHOULDER_DY, useHandImg);
+  } else {
+    drawRightArm(game.handX | 0, bcx, bcy, undefined, undefined, useHandImg);
+  }
   gameCtx.drawImage(pixelCanvas, 0, 0, 200, 150, 0, 0, 800, 600);
+
+  // 主人公スプライトを右腕より手前に描画（×4倍拡大、横中心=bcx, 底辺=画面下端600）
+  if (playerImg && playerLoaded) {
+    gameCtx.imageSmoothingEnabled = false;
+    const w  = playerImg.naturalWidth  * PX;
+    const h  = playerImg.naturalHeight * PX;
+    const cx = bcx * PX;
+    const by = 600;
+    gameCtx.drawImage(playerImg, Math.round(cx - w / 2), Math.round(by - h), w, h);
+  }
+
+  // 右手PNG（×4倍拡大、画像中心が手の中心。画像の下底が常に肩を向くよう回転）
+  if (useHandImg) {
+    gameCtx.imageSmoothingEnabled = false;
+    const w  = RIGHT_HAND_IMG.naturalWidth  * PX;
+    const h  = RIGHT_HAND_IMG.naturalHeight * PX;
+    const cx = (game.handX | 0)   * PX;  // 手の中心
+    const cy = (LOWER_BELT_Y + 4) * PX;
+    // 肩位置（PNG使用時 / ドット絵時で異なるオフセットを使う）
+    const shoulderDXv = (playerImg && playerLoaded) ? PLAYER_PNG_SHOULDER_DX : 9;
+    const shoulderDYv = (playerImg && playerLoaded) ? PLAYER_PNG_SHOULDER_DY : 4;
+    const sx = (bcx + shoulderDXv) * PX;
+    const sy = (bcy + shoulderDYv) * PX;
+    // 画像の +y方向（下底側）が手→肩ベクトルと同じ向きになるように
+    const angle = Math.atan2(sy - cy, sx - cx) - Math.PI / 2;
+    gameCtx.save();
+    gameCtx.translate(cx, cy);
+    gameCtx.rotate(angle);
+    gameCtx.drawImage(RIGHT_HAND_IMG, -w / 2, -h / 2, w, h);
+    gameCtx.restore();
+  }
 
   // 画面フラッシュ
   if (game.flash > 0) {
@@ -368,18 +513,38 @@ function render() {
   renderPlateCards();
   renderKeysHint();
 
-  // 吹き出し（キャラの頭上、独り言として）
+  // 独り言吹き出し（右詰め。rx を右端として左に伸びる）
   overlayCtx.textAlign = 'center';
   if (game.bubbleTimer > 0 && game.bubbleText) {
-    const by = 420;
+    const rx = 330;   // 右端x（ここを動かすと吹き出し全体が動く）
+    const by = 400;
     overlayCtx.font = 'bold 16px sans-serif';
     const bw = overlayCtx.measureText(game.bubbleText).width + 28;
-    roundedRect(overlayCtx, 400 - bw / 2, by - 4, bw, 32, 6);
+    roundedRect(overlayCtx, rx - bw, by - 4, bw, 32, 6);
     overlayCtx.fillStyle = 'rgba(255,255,255,.95)'; overlayCtx.fill();
     overlayCtx.strokeStyle = '#999'; overlayCtx.lineWidth = 1;
-    roundedRect(overlayCtx, 400 - bw / 2, by - 4, bw, 32, 6); overlayCtx.stroke();
+    roundedRect(overlayCtx, rx - bw, by - 4, bw, 32, 6); overlayCtx.stroke();
+
+    // 三角しっぽ（吹き出し右辺の中央から右に突き出す）
+    const sideX = rx;             // 矩形の右辺x
+    const midY  = by + 12;        // 矩形高さの中央y
+    const tipX  = sideX + 14;     // 先端（右方向）
+    overlayCtx.beginPath();
+    overlayCtx.moveTo(sideX, midY - 8);
+    overlayCtx.lineTo(tipX,  midY);
+    overlayCtx.lineTo(sideX, midY + 8);
+    overlayCtx.closePath();
+    overlayCtx.fillStyle = 'rgba(255,255,255,.95)'; overlayCtx.fill();
+    overlayCtx.beginPath();   // 枠線は上→先端→下の2辺だけ（右辺は矩形と継ぎ目なし）
+    overlayCtx.moveTo(sideX, midY - 8);
+    overlayCtx.lineTo(tipX,  midY);
+    overlayCtx.lineTo(sideX, midY + 8);
+    overlayCtx.stroke();
+
     overlayCtx.fillStyle = '#222';
-    overlayCtx.fillText(game.bubbleText, 400, by + 18);
+    overlayCtx.textAlign = 'right';
+    overlayCtx.fillText(game.bubbleText, rx - 14, by + 18);
+    overlayCtx.textAlign = 'center';
   }
 
   // コンボ表示（皿カード帯と上ベルトの境界あたり、コンボ数で派手さが変わる）
@@ -426,12 +591,22 @@ function render() {
     overlayCtx.globalAlpha = 1;
   }
 
-  // ガリ残数（gari有効ステージのみ）
+  // ガリ残数（gari有効ステージのみ。ガリ皿の右、黒縁取り）
   if (game.config?.gari) {
-    overlayCtx.font = 'bold 10px monospace';
-    overlayCtx.fillStyle = '#ccc';
-    overlayCtx.textAlign = 'center';
-    overlayCtx.fillText(game.gari + '/3', (bcx + 32) * PX, PIXEL_OFFSET_Y + (bcy + 14) * PX + 18);
+    const text = game.gari + '/3';
+    const tx = (bcx + 46) * PX;          // ガリ皿の右
+    const ty = (bcy - 10) * PX;          // ガリ皿の中心高さ
+    overlayCtx.font = 'bold 14px monospace';
+    overlayCtx.textAlign = 'left';
+    overlayCtx.textBaseline = 'middle';
+    overlayCtx.lineWidth = 3;
+    overlayCtx.lineJoin = 'round';
+    overlayCtx.strokeStyle = 'rgba(0,0,0,0.85)';
+    overlayCtx.strokeText(text, tx, ty);
+    overlayCtx.fillStyle = '#fff';
+    overlayCtx.fillText(text, tx, ty);
+    overlayCtx.textBaseline = 'alphabetic';
+    overlayCtx.lineWidth = 1;
   }
 
   // お茶タイム
@@ -793,6 +968,10 @@ function renderPlateCards() {
 
 // 操作説明帯（キャンバス内、画面下部）
 function renderKeysHint() {
+  // 操作説明帯の位置（ここを直せば共通で変わる）
+  const KEYS_HINT_X = 400;
+  const KEYS_HINT_Y = 580;
+
   const opacity = (game.config?.fadeout && game.fadeoutProgress > 0)
     ? Math.max(0, 1 - game.fadeoutProgress) : 1;
   if (opacity <= 0) return;
@@ -805,9 +984,9 @@ function renderKeysHint() {
   overlayCtx.lineWidth = 4;
   overlayCtx.lineJoin  = 'round';
   overlayCtx.strokeStyle = 'rgba(0,0,0,0.85)';
-  overlayCtx.strokeText(text, 400, 559);
+  overlayCtx.strokeText(text, KEYS_HINT_X, KEYS_HINT_Y);
   overlayCtx.fillStyle = '#fff';
-  overlayCtx.fillText(text, 400, 559);
+  overlayCtx.fillText(text, KEYS_HINT_X, KEYS_HINT_Y);
 
   overlayCtx.textBaseline = 'alphabetic';
   overlayCtx.lineWidth = 1;
@@ -882,11 +1061,13 @@ function renderStageSelect() {
     overlayCtx.fillStyle = unlocked ? (selected ? '#ffd740' : '#fff') : '#888';
     overlayCtx.fillText(STAGE_EPISODES[i], cx, epY);
 
-    // 2行目：タイトル
-    overlayCtx.font = 'bold 22px "Hiragino Mincho ProN","YuMincho","Meiryo",serif';
-    overlayCtx.strokeText(STAGE_TITLES[i], cx, titleY);
-    overlayCtx.fillStyle = unlocked ? (selected ? '#ffe680' : '#fff') : '#888';
-    overlayCtx.fillText(STAGE_TITLES[i], cx, titleY);
+    // 2行目：タイトル（未解放ステージはネタバレ防止で非表示）
+    if (unlocked) {
+      overlayCtx.font = 'bold 22px "Hiragino Mincho ProN","YuMincho","Meiryo",serif';
+      overlayCtx.strokeText(STAGE_TITLES[i], cx, titleY);
+      overlayCtx.fillStyle = selected ? '#ffe680' : '#fff';
+      overlayCtx.fillText(STAGE_TITLES[i], cx, titleY);
+    }
 
     overlayCtx.lineWidth = 1;
 
@@ -969,12 +1150,12 @@ function renderStage5Center() {
 function renderEnding() {
   gameCtx.fillStyle = '#000'; gameCtx.fillRect(0, 0, 800, 600);
   overlayCtx.textAlign = 'center';
-  overlayCtx.font = `bold 72px "Hiragino Sans","Meiryo",sans-serif`;
+  overlayCtx.font = `900 72px "Hiragino Mincho ProN","YuMincho","MS PMincho",serif`;
   overlayCtx.fillStyle = '#ffd740';
-  overlayCtx.fillText('FIN', 400, 310);
+  overlayCtx.fillText('-完-', 400, 310);
   if (game.endingReady) {
-    overlayCtx.font = 'bold 18px sans-serif'; overlayCtx.fillStyle = '#888';
-    if (Math.sin(performance.now() / 400) > 0.2) overlayCtx.fillText('▶ 何かキーを押してください', 400, 400);
+    overlayCtx.font = 'bold 20px sans-serif'; overlayCtx.fillStyle = '#ffd740';
+    if (Math.sin(performance.now() / 400) > 0.2) overlayCtx.fillText('Press Any Key', 400, 400);
   }
 }
 
@@ -987,78 +1168,51 @@ function renderPrologue() {
   overlayCtx.fillStyle = 'rgba(255,255,255,0.6)';
   overlayCtx.fillText('俺の寿司の話をしよう。', 400, 270);
   overlayCtx.fillText('長い、長い話だ。', 400, 310);
-  overlayCtx.font = '13px sans-serif';
-  overlayCtx.fillStyle = '#444';
-  if (Math.sin(performance.now() / 600) > 0) {
-    overlayCtx.fillText('press any key', 400, 430);
+  overlayCtx.font = 'bold 20px sans-serif';
+  overlayCtx.fillStyle = '#ffd740';
+  if (Math.sin(performance.now() / 400) > 0.2) {
+    overlayCtx.fillText('Press Any Key', 400, 430);
   }
 }
 
 // ===== タイトル画面 =====
 function renderTitle() {
-  pixelCtx.fillStyle = '#0a0828'; pixelCtx.fillRect(0, 0, 200, 150);
-  const now = performance.now() / 1000;
-  drawBelt(LOWER_BELT_Y, now,  1);
-  drawBelt(UPPER_BELT_Y, now, -1);
-  // ベルト上の寿司：PNGが無いものだけ pixelCanvas にドット絵で描く
-  const titleLower = [];
-  const titleUpper = [];
-  for (let i = 0; i < 7; i++) {
-    const neta = NETA_LIST[i * 3 % NETA_LIST.length];
-    titleLower.push({ neta, cx: 10 + i * 28 });
-    const name = NETA_FILE_NAMES[NETA_LIST.indexOf(neta)];
-    if (!(NETA_SPRITES[name] && NETA_SPRITE_LOADED[name])) {
-      drawNeta(10 + i * 28, LOWER_BELT_Y + 2, neta, false);  // 8px belt + 6px sprite で下端揃え
-    }
-  }
-  for (let i = 0; i < 6; i++) {
-    const neta = NETA_LIST[(i * 4 + 2) % NETA_LIST.length];
-    titleUpper.push({ neta, cx: 185 - i * 35 });
-    const name = NETA_FILE_NAMES[NETA_LIST.indexOf(neta)];
-    if (!(NETA_SPRITES[name] && NETA_SPRITE_LOADED[name])) {
-      drawNeta(185 - i * 35, UPPER_BELT_Y + 4, neta, true);  // 8px belt + 4px sprite で下端揃え
-    }
-  }
-  gameCtx.imageSmoothingEnabled = false;
-  gameCtx.drawImage(pixelCanvas, 0, 0, 200, 150, 0, 0, 800, 600);
+  if (titleStartTime === null) titleStartTime = performance.now();
 
-  // PNGがある寿司を gameCanvas に直接描画（pixelCanvas は 200×150 → ×4倍）
-  const TITLE_X_SCALE = 800 / 200;
-  const TITLE_Y_SCALE = 600 / 150;
-  const TITLE_LOWER_BOTTOM_Y = (LOWER_BELT_Y + 8) * TITLE_Y_SCALE;
-  const TITLE_UPPER_BOTTOM_Y = (UPPER_BELT_Y + 8) * TITLE_Y_SCALE;
-  for (const { neta, cx } of titleLower) {
-    const name = NETA_FILE_NAMES[NETA_LIST.indexOf(neta)];
-    const img  = NETA_SPRITES[name];
-    if (img && NETA_SPRITE_LOADED[name]) {
-      const w = img.naturalWidth, h = img.naturalHeight;
-      gameCtx.drawImage(img, Math.round(cx * TITLE_X_SCALE - w / 2), Math.round(TITLE_LOWER_BOTTOM_Y - h), w, h);
-    }
-  }
-  for (const { neta, cx } of titleUpper) {
-    const name = NETA_FILE_NAMES[NETA_LIST.indexOf(neta)];
-    const img  = NETA_SPRITES[name];
-    if (img && NETA_SPRITE_LOADED[name]) {
-      const W = 24, H = 16;
-      gameCtx.drawImage(img, Math.round(cx * TITLE_X_SCALE - W / 2), Math.round(TITLE_UPPER_BOTTOM_Y - H), W, H);
-    }
+  // 黒下地
+  gameCtx.fillStyle = '#000';
+  gameCtx.fillRect(0, 0, 800, 600);
+
+  const FADE_MS = 1200;
+  const elapsed = performance.now() - titleStartTime;
+  const alpha = Math.min(1, elapsed / FADE_MS);
+
+  // タイトル画像をフェードインで全画面に重ねる
+  if (TITLE_BG_LOADED) {
+    gameCtx.imageSmoothingEnabled = true;
+    gameCtx.globalAlpha = alpha;
+    gameCtx.drawImage(TITLE_BG_IMG, 0, 0, 800, 600);
+    gameCtx.globalAlpha = 1;
   }
 
-  overlayCtx.textAlign = 'center';
-  overlayCtx.font = 'bold 64px "Hiragino Sans","Meiryo",sans-serif';
-  overlayCtx.strokeStyle = '#5d3a00'; overlayCtx.lineWidth = 4; overlayCtx.strokeText('俺の寿司', 400, 250);
-  overlayCtx.fillStyle = '#ffd740'; overlayCtx.fillText('俺の寿司', 400, 250);
-  overlayCtx.font = 'bold 18px sans-serif'; overlayCtx.fillStyle = '#ffe680';
-  overlayCtx.fillText('〜時価の回転寿司で、ざっくり三千円くらいで満足したい！！〜', 400, 290);
-  overlayCtx.font = 'bold 20px sans-serif';
-  overlayCtx.fillStyle = '#ffd740';
-  if (Math.sin(performance.now() / 400) > 0.2) overlayCtx.fillText('▶ 何かキーを押したら始まります', 400, 380);
-  overlayCtx.font = 'bold 17px sans-serif'; overlayCtx.fillStyle = '#fff';
-  overlayCtx.fillText('A/D：左右　Space：掴む　Z：お茶　E：ガリ　Q：会計', 400, 450);
+  // Press Any Key（フェードイン完了後に点滅表示。半透明黒パネル付きで他画面と統一）
+  const showPrompt = !TITLE_BG_LOADED || alpha >= 1;
+  if (showPrompt && Math.sin(performance.now() / 400) > 0.2) {
+    overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    roundedRect(overlayCtx, 220, 506, 360, 40, 10);
+    overlayCtx.fill();
+    overlayCtx.textAlign = 'center';
+    overlayCtx.font = 'bold 20px sans-serif';
+    overlayCtx.fillStyle = '#ffd740';
+    overlayCtx.fillText('Press Any Key', 400, 532);
+  }
+
+  // 白フラッシュ（Rキーリセット時／キー押下→遷移時）
   if (titleFlashTimer > 0) {
     overlayCtx.fillStyle = `rgba(255,255,255,${(titleFlashTimer / 0.5).toFixed(3)})`;
     overlayCtx.fillRect(0, 0, 800, 600);
   }
+
   if (currentBgm !== 'title' && audioCtx) startBGM('title');
 }
 
@@ -1143,9 +1297,9 @@ function renderBill() {
     overlayCtx.fillStyle = 'rgba(0,0,0,0.6)';
     roundedRect(overlayCtx, 160, 510, 480, 38, 10);
     overlayCtx.fill();
-    overlayCtx.font = 'bold 16px sans-serif';
+    overlayCtx.font = 'bold 20px sans-serif';
     overlayCtx.textAlign = 'center';
-    strokeFill('▶ 何かキーを押したら、最終結果が出ます', 400, 533, '#ffd740', 4);
+    strokeFill('Press Any Key', 400, 535, '#ffd740', 4);
   }
 
   overlayCtx.lineWidth = 1;
@@ -1157,6 +1311,7 @@ function renderResult() {
   // 背景: 初回描画時にランダムで1枚選んで固定（このリザルト表示中は同じものを使う）
   if (game.resultBgIdx === undefined || game.resultBgIdx === null) {
     game.resultBgIdx = Math.floor(Math.random() * RESULT_BG_NAMES.length);
+    game.resultBgStartTime = performance.now();
   }
   let bgIdx = game.resultBgIdx;
   let bgImg = RESULT_BG_IMGS[bgIdx];
@@ -1166,11 +1321,16 @@ function renderResult() {
       if (RESULT_BG_LOADED[i]) { bgIdx = i; bgImg = RESULT_BG_IMGS[i]; break; }
     }
   }
+  // 黒で下地を敷いてから、画像をフェードインで重ねる
+  gameCtx.fillStyle = '#100a04'; gameCtx.fillRect(0, 0, 800, 600);
   if (bgImg && RESULT_BG_LOADED[bgIdx]) {
+    const FADE_MS = 900;
+    const elapsed = performance.now() - (game.resultBgStartTime ?? performance.now());
+    const alpha = Math.min(1, elapsed / FADE_MS);
     gameCtx.imageSmoothingEnabled = true;
+    gameCtx.globalAlpha = alpha;
     gameCtx.drawImage(bgImg, 0, 0, 800, 600);
-  } else {
-    gameCtx.fillStyle = '#100a04'; gameCtx.fillRect(0, 0, 800, 600);
+    gameCtx.globalAlpha = 1;
   }
 
   // 半透明黒パネル（テキストの可読性向上、本体）
@@ -1255,8 +1415,8 @@ function renderResult() {
       overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.55)';
       roundedRect(overlayCtx, 220, 518, 360, 40, 10);
       overlayCtx.fill();
-      overlayCtx.font = 'bold 16px sans-serif';
-      strokeFill('なんか押したらもう一回遊べます', 400, 542, '#ffd740');
+      overlayCtx.font = 'bold 20px sans-serif';
+      strokeFill('Press Any Key', 400, 544, '#ffd740');
     }
   }
 
