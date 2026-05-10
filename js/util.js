@@ -10,9 +10,11 @@ function getLoadingProgress() {
   return { done, total: LOADING_IMAGES.length, ratio: done / LOADING_IMAGES.length };
 }
 
-// CSV を行→セルの配列に変換（quoted fields対応、BOM除去）
+// CSV を行→セルの配列に変換（quoted fields対応、BOM除去、改行コード CRLF/CR/LF 全対応）
 function parseCSV(text) {
   if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  // 改行コードを LF に統一して以降のパースを単純化
+  text = text.replace(/\r\n?/g, '\n');
   const rows = [];
   let pos = 0;
   while (pos < text.length) {
@@ -27,13 +29,12 @@ function parseCSV(text) {
           else field += text[pos++];
         }
       } else {
-        while (pos < text.length && text[pos] !== ',' && text[pos] !== '\r' && text[pos] !== '\n')
+        while (pos < text.length && text[pos] !== ',' && text[pos] !== '\n')
           field += text[pos++];
       }
       row.push(field);
       if (pos >= text.length) break;
       if (text[pos] === ',') { pos++; continue; }
-      if (text[pos] === '\r' && text[pos + 1] === '\n') { pos += 2; break; }
       if (text[pos] === '\n') { pos++; break; }
     }
     if (row.some(f => f.trim())) rows.push(row);

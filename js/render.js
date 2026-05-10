@@ -314,7 +314,6 @@ function roundedRect(ctx, x, y, w, h, r) {
 function render() {
   overlayCtx.clearRect(0, 0, 800, 600);
 
-  if (game.phase === 'loading')     { renderLoading();     return; }
   if (game.phase === 'prologue')    { renderPrologue();    return; }
   if (game.phase === 'vn')          { renderVN();          return; }
   if (game.phase === 'title')       { renderTitle();       return; }
@@ -1165,29 +1164,7 @@ function renderEnding() {
   }
 }
 
-// ===== ローディング画面（重要画像のDL待ち）=====
-function renderLoading() {
-  gameCtx.fillStyle = '#000'; gameCtx.fillRect(0, 0, 800, 600);
-  const { done, total, ratio } = getLoadingProgress();
-  overlayCtx.textAlign = 'center';
-  overlayCtx.font = 'bold 24px sans-serif';
-  overlayCtx.fillStyle = '#ffd740';
-  overlayCtx.fillText('Loading...', 400, 280);
-  // プログレスバー
-  const bw = 360, bh = 16;
-  const bx = 400 - bw / 2, by = 310;
-  overlayCtx.strokeStyle = '#ffd740';
-  overlayCtx.lineWidth = 2;
-  overlayCtx.strokeRect(bx, by, bw, bh);
-  overlayCtx.fillStyle = '#ffd740';
-  overlayCtx.fillRect(bx + 2, by + 2, (bw - 4) * ratio, bh - 4);
-  overlayCtx.font = 'bold 14px monospace';
-  overlayCtx.fillStyle = '#fff';
-  overlayCtx.fillText(`${done} / ${total}`, 400, 350);
-  overlayCtx.lineWidth = 1;
-}
-
-// ===== プロローグ画面（起動直後）=====
+// ===== プロローグ画面（起動直後。重要画像のDL進捗もここに表示）=====
 function renderPrologue() {
   gameCtx.fillStyle = '#000';
   gameCtx.fillRect(0, 0, 800, 600);
@@ -1196,10 +1173,31 @@ function renderPrologue() {
   overlayCtx.fillStyle = 'rgba(255,255,255,0.6)';
   overlayCtx.fillText('俺の寿司の話をしよう。', 400, 270);
   overlayCtx.fillText('長い、長い話だ。', 400, 310);
-  overlayCtx.font = 'bold 20px sans-serif';
-  overlayCtx.fillStyle = '#ffd740';
-  if (Math.sin(performance.now() / 400) > 0.2) {
-    overlayCtx.fillText('Press Any Key', 400, 430);
+
+  const { done, total, ratio } = getLoadingProgress();
+  if (ratio < 1) {
+    // ロード中：プログレスバー
+    const bw = 360, bh = 12;
+    const bx = 400 - bw / 2, by = 416;
+    overlayCtx.strokeStyle = 'rgba(255,215,64,0.6)';
+    overlayCtx.lineWidth = 2;
+    overlayCtx.strokeRect(bx, by, bw, bh);
+    overlayCtx.fillStyle = '#ffd740';
+    overlayCtx.fillRect(bx + 2, by + 2, (bw - 4) * ratio, bh - 4);
+    overlayCtx.font = 'bold 12px monospace';
+    overlayCtx.fillStyle = 'rgba(255,255,255,0.6)';
+    overlayCtx.fillText(`Loading... ${done} / ${total}`, 400, 450);
+    overlayCtx.lineWidth = 1;
+  } else {
+    // ロード完了：Press Any Key（他画面と統一スタイル）
+    if (Math.sin(performance.now() / 400) > 0.2) {
+      overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+      roundedRect(overlayCtx, 220, 416, 360, 40, 10);
+      overlayCtx.fill();
+      overlayCtx.font = 'bold 20px sans-serif';
+      overlayCtx.fillStyle = '#ffd740';
+      overlayCtx.fillText('Press Any Key', 400, 442);
+    }
   }
 }
 

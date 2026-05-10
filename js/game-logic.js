@@ -231,8 +231,9 @@ let titleFlashTimer   = 0;
 const INTER_MAP       = { 1: 'Inter_0', 4: 'Inter_1' };
 
 // ===== ゲーム状態 =====
-let game = { phase: 'loading' };
-const POST_LOAD_PHASE = prologueSeen ? 'title' : 'prologue';
+// 起動時は常にprologue画面でロード待ち。ロード完了でPress Any Key表示。
+// 一度プロローグを見た人もロード待ちは必要なので、prologueSeen判定はキー押下時に行う。
+let game = { phase: 'prologue' };
 
 function newGame() {
   laneHistory = [];
@@ -323,6 +324,7 @@ const keys = {};
 
 document.addEventListener('click', () => {
   if (game.phase === 'prologue') {
+    if (getLoadingProgress().ratio < 1) return;  // ロード未完了は無視
     resumeAudio();
     audioInitialized = true;
     prologueSeen = true;
@@ -341,8 +343,9 @@ window.addEventListener('keydown', e => {
   // Space は常にデフォルト挙動（フォーカスされた button をクリック扱いする等）を抑制
   if (k === ' ') e.preventDefault();
 
-  // プロローグ画面：何か押したらオーディオ初期化してプロローグVNへ
+  // プロローグ画面：何か押したらオーディオ初期化してタイトルへ（ロード未完了は無視）
   if (game.phase === 'prologue') {
+    if (getLoadingProgress().ratio < 1) return;
     resumeAudio();
     audioInitialized = true;
     prologueSeen = true;
@@ -751,11 +754,6 @@ function eat(neta) {
 // ===== 更新 =====
 function update(dt) {
   if (game.paused) return;
-
-  if (game.phase === 'loading') {
-    if (getLoadingProgress().ratio >= 1) game.phase = POST_LOAD_PHASE;
-    return;
-  }
 
   if (game.phase !== 'title') titleStartTime = null;
 

@@ -84,6 +84,7 @@ function parseAndStoreScenario(text) {
     scenario.scenes.get(key).push({ type, speaker, expression, content });
   }
   scenario.loaded = true;
+  console.log(`[VN] シナリオロード完了: ${scenario.scenes.size} シーン, 行数=${rows.length}`);
 }
 
 // ===== VN状態 =====
@@ -97,6 +98,7 @@ const vn = {
 
 function playVNScene(key, onComplete, guardMs) {
   const events = scenario.scenes.get(key);
+  console.log(`[VN] シーン開始: key="${key}", events=${events ? events.length : 'なし'}`);
   if (!events || !events.length) { onComplete && onComplete(); return; }
   game.phase = 'vn';
   document.getElementById('ui').style.display = 'none';
