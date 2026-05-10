@@ -231,7 +231,8 @@ let titleFlashTimer   = 0;
 const INTER_MAP       = { 1: 'Inter_0', 4: 'Inter_1' };
 
 // ===== ゲーム状態 =====
-let game = { phase: prologueSeen ? 'title' : 'prologue' };
+let game = { phase: 'loading' };
+const POST_LOAD_PHASE = prologueSeen ? 'title' : 'prologue';
 
 function newGame() {
   laneHistory = [];
@@ -750,6 +751,11 @@ function eat(neta) {
 // ===== 更新 =====
 function update(dt) {
   if (game.paused) return;
+
+  if (game.phase === 'loading') {
+    if (getLoadingProgress().ratio >= 1) game.phase = POST_LOAD_PHASE;
+    return;
+  }
 
   if (game.phase !== 'title') titleStartTime = null;
 

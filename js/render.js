@@ -40,13 +40,15 @@ let STAGE_BASE_LOADED = false;
 STAGE_BASE_IMG.onload  = () => { STAGE_BASE_LOADED = true; };
 STAGE_BASE_IMG.onerror = () => { STAGE_BASE_LOADED = false; };
 STAGE_BASE_IMG.src = 'assets/images/ui/stage_base.png';
+trackImage(STAGE_BASE_IMG);
 
 // タイトル画面の全面背景画像
 const TITLE_BG_IMG = new Image();
 let TITLE_BG_LOADED = false;
 TITLE_BG_IMG.onload  = () => { TITLE_BG_LOADED = true; };
 TITLE_BG_IMG.onerror = () => { TITLE_BG_LOADED = false; };
-TITLE_BG_IMG.src = 'assets/images/backgrounds/title/title.png';
+TITLE_BG_IMG.src = 'assets/images/backgrounds/title/title.jpg';
+trackImage(TITLE_BG_IMG);
 let titleStartTime = null;
 
 // プレイ画面用主人公スプライト（年齢別、体・頭のみ。右腕は既存のドット絵描画を維持）
@@ -111,8 +113,10 @@ GAME_END_BG_IMG.onload  = () => { GAME_END_BG_LOADED = true; };
 GAME_END_BG_IMG.onerror = () => { GAME_END_BG_LOADED = false; };
 
 function preloadStoryBackground() {
-  STAGE_SELECT_BG_IMG.src = 'assets/images/backgrounds/story/stage_select.png';
-  GAME_END_BG_IMG.src     = 'assets/images/backgrounds/story/game_end.png';
+  STAGE_SELECT_BG_IMG.src = 'assets/images/backgrounds/story/stage_select.jpg';
+  GAME_END_BG_IMG.src     = 'assets/images/backgrounds/story/game_end.jpg';
+  trackImage(STAGE_SELECT_BG_IMG);
+  trackImage(GAME_END_BG_IMG);
 }
 
 // リザルト画面の背景PNG（複数。表示時にランダム選択）
@@ -132,9 +136,10 @@ function preloadResultBackgrounds() {
     const idx = i;
     img.onload  = () => { RESULT_BG_LOADED[idx] = true; };
     img.onerror = () => { RESULT_BG_LOADED[idx] = false; };
-    img.src = `assets/images/backgrounds/result/${RESULT_BG_NAMES[i]}.png`;
+    img.src = `assets/images/backgrounds/result/${RESULT_BG_NAMES[i]}.jpg`;
     RESULT_BG_IMGS.push(img);
     RESULT_BG_LOADED.push(false);
+    trackImage(img);
   }
 }
 
@@ -309,6 +314,7 @@ function roundedRect(ctx, x, y, w, h, r) {
 function render() {
   overlayCtx.clearRect(0, 0, 800, 600);
 
+  if (game.phase === 'loading')     { renderLoading();     return; }
   if (game.phase === 'prologue')    { renderPrologue();    return; }
   if (game.phase === 'vn')          { renderVN();          return; }
   if (game.phase === 'title')       { renderTitle();       return; }
@@ -1157,6 +1163,28 @@ function renderEnding() {
     overlayCtx.font = 'bold 20px sans-serif'; overlayCtx.fillStyle = '#ffd740';
     if (Math.sin(performance.now() / 400) > 0.2) overlayCtx.fillText('Press Any Key', 400, 400);
   }
+}
+
+// ===== ローディング画面（重要画像のDL待ち）=====
+function renderLoading() {
+  gameCtx.fillStyle = '#000'; gameCtx.fillRect(0, 0, 800, 600);
+  const { done, total, ratio } = getLoadingProgress();
+  overlayCtx.textAlign = 'center';
+  overlayCtx.font = 'bold 24px sans-serif';
+  overlayCtx.fillStyle = '#ffd740';
+  overlayCtx.fillText('Loading...', 400, 280);
+  // プログレスバー
+  const bw = 360, bh = 16;
+  const bx = 400 - bw / 2, by = 310;
+  overlayCtx.strokeStyle = '#ffd740';
+  overlayCtx.lineWidth = 2;
+  overlayCtx.strokeRect(bx, by, bw, bh);
+  overlayCtx.fillStyle = '#ffd740';
+  overlayCtx.fillRect(bx + 2, by + 2, (bw - 4) * ratio, bh - 4);
+  overlayCtx.font = 'bold 14px monospace';
+  overlayCtx.fillStyle = '#fff';
+  overlayCtx.fillText(`${done} / ${total}`, 400, 350);
+  overlayCtx.lineWidth = 1;
 }
 
 // ===== プロローグ画面（起動直後）=====

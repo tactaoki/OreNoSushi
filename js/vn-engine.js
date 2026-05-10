@@ -25,8 +25,9 @@ function preloadBackgrounds() {
     const img = new Image();
     img.onload  = () => { BG_SPRITE_LOADED[key] = true; };
     img.onerror = () => { BG_SPRITE_LOADED[key] = false; };
-    img.src = `assets/images/backgrounds/${BG_PNG_NAMES[key]}.png`;
+    img.src = `assets/images/backgrounds/${BG_PNG_NAMES[key]}.jpg`;
     BG_SPRITES[key] = img;
+    trackImage(img);
   }
 }
 
@@ -46,6 +47,7 @@ function preloadCharacters() {
     img.onerror = () => { CHAR_SPRITE_LOADED[key] = false; };
     img.src = `assets/images/characters/${key}.png`;
     CHAR_SPRITES[key] = img;
+    trackImage(img);
   }
   // 大将: 5枚（30/40/50/60/70）
   for (const age of [30, 40, 50, 60, 70]) {
@@ -55,6 +57,7 @@ function preloadCharacters() {
     img.onerror = () => { CHAR_SPRITE_LOADED[key] = false; };
     img.src = `assets/images/characters/${key}.png`;
     CHAR_SPRITES[key] = img;
+    trackImage(img);
   }
 }
 
