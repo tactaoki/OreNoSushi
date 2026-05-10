@@ -118,6 +118,7 @@ function playVNScene(key, onComplete, guardMs) {
 function processVNEvent() {
   while (vn.index < vn.events.length) {
     const { type, speaker, expression, content } = vn.events[vn.index++];
+    console.log(`[VN] event#${vn.index - 1}: type="${type}" speaker="${speaker}" content="${(content || '').slice(0, 30)}"`);
     if (type === 'フェード') {
       startVNFade(speaker === '暗転' ? 1 : 0, processVNEvent); return;
     }
@@ -130,6 +131,7 @@ function processVNEvent() {
     }
     if (type === 'ナレーション') { vn.dialog = { speaker: '', text: content }; vn.waitInput = true; return; }
     if (type === 'セリフ')       { vn.dialog = { speaker,     text: content }; vn.waitInput = true; return; }
+    console.warn(`[VN] 未知のtype="${type}" — このイベントは無視されました`);
   }
   // シーン終了
   if (vn.onComplete) { const cb = vn.onComplete; vn.onComplete = null; cb(); }
