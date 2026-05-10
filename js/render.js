@@ -325,15 +325,20 @@ function render() {
   if (game.phase === 'result')      { renderResult();      return; }
   if (game.phase !== 'play' && game.phase !== 'tea' && game.phase !== 'bill_intro') return;
 
+  // 描画状態を防衛的に初期化（前段で残った transform/filter/alpha を消す）
+  gameCtx.setTransform(1, 0, 0, 1, 0, 0);
+  gameCtx.globalAlpha = 1;
+  gameCtx.filter = 'none';
   gameCtx.imageSmoothingEnabled = false;
 
-  // 1) ステージのVN背景（透過部分=画面上部に敷く、ぼかし＋色薄めで前景UIを見やすく）
+  // 1) ステージのVN背景（透過部分=画面上部に敷く、半透明黒で薄暗く）
+  // Canvas filter は古いブラウザで動かないので半透明黒オーバーレイで代替
   const stageBgKey = STAGE_VN_BG[currentStage] || 'bg_cheap';
   const stageBg    = BG_SPRITES[stageBgKey];
   if (stageBg && BG_SPRITE_LOADED[stageBgKey]) {
-    gameCtx.filter = 'brightness(0.55) saturate(0.5)';
     gameCtx.drawImage(stageBg, 0, 0, 800, 600);
-    gameCtx.filter = 'none';
+    gameCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    gameCtx.fillRect(0, 0, 800, 600);
   } else {
     gameCtx.fillStyle = BG_COLORS[stageBgKey] || '#0a0828';
     gameCtx.fillRect(0, 0, 800, 600);
