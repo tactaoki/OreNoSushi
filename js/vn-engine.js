@@ -198,10 +198,12 @@ function drawVNChar(x, name, expression, dimmed) {
     const img = CHAR_SPRITES[key];
     if (img && CHAR_SPRITE_LOADED[key]) {
       overlayCtx.imageSmoothingEnabled = true;
-      // 発言していない側は不透明のまま少し暗く（filter: brightness）
-      if (dimmed) overlayCtx.filter = 'brightness(0.6)';
       overlayCtx.drawImage(img, x, y, w, h);
-      overlayCtx.filter = 'none';
+      // 発言していない側を暗くする（Canvas filter は古いブラウザで動かないので半透明黒で代替）
+      if (dimmed) {
+        overlayCtx.fillStyle = 'rgba(0,0,0,0.4)';
+        overlayCtx.fillRect(x, y, w, h);
+      }
       return;
     }
   }
