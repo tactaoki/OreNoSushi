@@ -506,7 +506,7 @@ function render() {
   }
 
   // ネタ名テキスト（手前レーンのみ。奥レーンは省略）
-  overlayCtx.font = 'bold 9px monospace';
+  overlayCtx.font = `bold 9px ${JP_MONO_FONT}`;
   for (const s of game.lower) {
     if (s.x > 5 && s.x < 195) {
       const sx = s.x * PX;
@@ -528,7 +528,7 @@ function render() {
   if (game.bubbleTimer > 0 && game.bubbleText) {
     const rx = 330;   // 右端x（ここを動かすと吹き出し全体が動く）
     const by = 400;
-    overlayCtx.font = 'bold 16px sans-serif';
+    overlayCtx.font = `bold 16px ${JP_FONT}`;
     const bw = overlayCtx.measureText(game.bubbleText).width + 28;
     roundedRect(overlayCtx, rx - bw, by - 4, bw, 32, 6);
     overlayCtx.fillStyle = 'rgba(255,255,255,.95)'; overlayCtx.fill();
@@ -572,7 +572,7 @@ function render() {
     overlayCtx.translate(sx, sy);
     overlayCtx.scale(scale, scale);
     overlayCtx.textAlign = 'center';
-    overlayCtx.font      = 'bold ' + fontSize + 'px sans-serif';
+    overlayCtx.font      = `bold ${fontSize}px ${JP_FONT}`;
     overlayCtx.lineWidth   = c >= 3 ? 8 : c === 2 ? 6 : 5;
     overlayCtx.strokeStyle = 'rgba(0,0,0,.85)';
     overlayCtx.strokeText(game.comboLabel, 0, 0);
@@ -592,7 +592,7 @@ function render() {
   for (const p of game.popups) {
     const py = PIXEL_OFFSET_Y + (bcy - 24) * PX - p.y;
     overlayCtx.globalAlpha = Math.min(1, p.life);
-    overlayCtx.font = 'bold ' + p.sz + 'px sans-serif';
+    overlayCtx.font = `bold ${p.sz}px ${JP_FONT}`;
     overlayCtx.strokeStyle = 'rgba(0,0,0,.8)'; overlayCtx.lineWidth = 4;
     overlayCtx.strokeText(p.txt, 400, py);
     overlayCtx.fillStyle = p.col;
@@ -606,7 +606,7 @@ function render() {
     const text = game.gari + '/3';
     const tx = (bcx + 46) * PX;          // ガリ皿の右
     const ty = (bcy - 10) * PX;          // ガリ皿の中心高さ
-    overlayCtx.font = 'bold 14px monospace';
+    overlayCtx.font = `bold 14px ${JP_MONO_FONT}`;
     overlayCtx.textAlign = 'left';
     overlayCtx.textBaseline = 'middle';
     overlayCtx.lineWidth = 3;
@@ -622,7 +622,7 @@ function render() {
   // お茶タイム
   if (game.phase === 'tea') {
     overlayCtx.fillStyle = 'rgba(0,0,0,.3)'; overlayCtx.fillRect(0, 0, 800, 600);
-    overlayCtx.fillStyle = '#fff'; overlayCtx.font = 'bold 20px sans-serif'; overlayCtx.textAlign = 'center';
+    overlayCtx.fillStyle = '#fff'; overlayCtx.font = `bold 20px ${JP_FONT}`; overlayCtx.textAlign = 'center';
     overlayCtx.fillText('🍵 お茶タイム… ' + Math.ceil(game.teaTimer), 400, 400);
   }
 
@@ -630,11 +630,11 @@ function render() {
   if (game.paused) {
     overlayCtx.fillStyle = 'rgba(0,0,0,.7)'; overlayCtx.fillRect(0, 0, 800, 600);
     overlayCtx.textAlign = 'center';
-    overlayCtx.font = 'bold 32px sans-serif'; overlayCtx.fillStyle = '#ffd740'; overlayCtx.fillText('ポーズ', 400, 280);
-    overlayCtx.font = 'bold 20px sans-serif';
+    overlayCtx.font = `bold 32px ${JP_FONT}`; overlayCtx.fillStyle = '#ffd740'; overlayCtx.fillText('ポーズ', 400, 280);
+    overlayCtx.font = `bold 20px ${JP_FONT}`;
     overlayCtx.fillStyle = game.pauseSel === 0 ? '#fff' : '#666'; overlayCtx.fillText('▶ 続行',    300, 350);
     overlayCtx.fillStyle = game.pauseSel === 1 ? '#fff' : '#666'; overlayCtx.fillText('▶ やり直し', 500, 350);
-    overlayCtx.font = '14px sans-serif'; overlayCtx.fillStyle = '#aaa';
+    overlayCtx.font = `14px ${JP_FONT}`; overlayCtx.fillStyle = '#aaa';
     overlayCtx.fillText('A/D で選択　Space で決定', 400, 410);
   }
 
@@ -662,7 +662,7 @@ function render() {
     overlayCtx.scale(scale, scale);
     overlayCtx.textAlign = 'center';
     overlayCtx.textBaseline = 'middle';
-    overlayCtx.font = '900 160px "Hiragino Sans","Meiryo",sans-serif';
+    overlayCtx.font = `900 160px ${JP_FONT}`;
     overlayCtx.strokeStyle = '#000';
     overlayCtx.lineWidth = 14;
     overlayCtx.lineJoin = 'round';
@@ -718,7 +718,7 @@ function renderStatusBarsCanvas() {
     const midY = barY + BAR_H / 2;
 
     // 見出し（左側、白文字＋黒輪郭で海背景上でも視認）
-    overlayCtx.font = 'bold 18px "Hiragino Sans","Meiryo",sans-serif';
+    overlayCtx.font = `bold 18px ${JP_FONT}`;
     overlayCtx.textAlign = 'left';
     overlayCtx.textBaseline = 'middle';
     overlayCtx.lineWidth = 4;
@@ -763,7 +763,7 @@ function renderRecommendPanel() {
   overlayCtx.strokeRect(508.5, 80.5, 282, 100);
 
   // タイトル
-  overlayCtx.font = 'bold 22px "Hiragino Mincho ProN","Yu Mincho","MS Mincho","Apple Color Emoji",serif';
+  overlayCtx.font = `bold 22px ${JP_MINCHO}`;
   overlayCtx.textAlign = 'center';
   overlayCtx.textBaseline = 'middle';
   overlayCtx.lineWidth = 5;
@@ -789,7 +789,7 @@ function renderRecommendPanel() {
     const sprY = sprAreaY + (sprAreaH - sprH) / 2;
     drawSushiToOverlay(rec, Math.round(sprX), Math.round(sprY), 4);
 
-    overlayCtx.font = 'bold 18px "Hiragino Mincho ProN","Yu Mincho","MS Mincho",serif';
+    overlayCtx.font = `bold 18px ${JP_MINCHO}`;
     overlayCtx.textAlign = 'center';
     overlayCtx.textBaseline = 'alphabetic';
     overlayCtx.lineWidth = 4;
@@ -835,7 +835,7 @@ function renderMasterHint() {
     overlayCtx.fillStyle = '#5c3318';
     roundedRect(overlayCtx, mDestX, mDestY, mDestW, mDestH, 6); overlayCtx.fill();
     overlayCtx.fillStyle = 'rgba(255,255,255,0.7)';
-    overlayCtx.font = 'bold 12px sans-serif';
+    overlayCtx.font = `bold 12px ${JP_FONT}`;
     overlayCtx.textAlign = 'center';
     overlayCtx.fillText('親方', mDestX + mDestW / 2, mDestY + mDestH / 2);
   }
@@ -873,7 +873,7 @@ function renderMasterHint() {
   const text = stageHints[idx] || '';
 
   // テキスト描画（ゴシック体、常に1行・吹き出し中央高さ・左寄せ。長文ははみ出しても可）
-  overlayCtx.font = 'bold 16px "Hiragino Sans","Meiryo",sans-serif';
+  overlayCtx.font = `bold 16px ${JP_FONT}`;
   overlayCtx.fillStyle = '#222';
   overlayCtx.textAlign = 'left';
   overlayCtx.textBaseline = 'middle';
@@ -944,7 +944,7 @@ function renderPlateCards() {
     }
 
     // 皿色テキスト：同系色を濃くしたものを輪郭線にして可読性UP
-    overlayCtx.font = 'bold 16px sans-serif';
+    overlayCtx.font = `bold 16px ${JP_FONT}`;
     overlayCtx.textAlign = 'left';
     overlayCtx.lineWidth = 3;
     overlayCtx.lineJoin = 'round';
@@ -955,7 +955,7 @@ function renderPlateCards() {
     overlayCtx.lineWidth = 1;
 
     // 枚数（×N）：濃色＋少し太めフォント
-    overlayCtx.font = 'bold 19px sans-serif';
+    overlayCtx.font = `bold 19px ${JP_FONT}`;
     overlayCtx.fillStyle = PLATE_DARK[i];
     overlayCtx.textAlign = 'right';
     overlayCtx.fillText('×' + game.plateCnt[i], rx + cardW - 8, ry + 22);
@@ -965,7 +965,7 @@ function renderPlateCards() {
     overlayCtx.moveTo(rx + 6, ry + 28); overlayCtx.lineTo(rx + cardW - 6, ry + 28); overlayCtx.stroke();
 
     // 値段ヒント（？／高め／N円）：濃色＋少し太めフォント
-    overlayCtx.font = 'bold 19px sans-serif';
+    overlayCtx.font = `bold 19px ${JP_FONT}`;
     overlayCtx.textAlign = 'center';
     overlayCtx.fillStyle = PLATE_DARK[i];
     if      (game.cardState[i] === 0) overlayCtx.fillText('？',                    rx + cardW / 2, ry + 49);
@@ -988,7 +988,7 @@ function renderKeysHint() {
   overlayCtx.globalAlpha = opacity;
 
   const text = 'A/D：左右　Space：掴む　Z：お茶　E：ガリ　Q：会計　Esc：ポーズ';
-  overlayCtx.font = 'bold 13px sans-serif';
+  overlayCtx.font = `bold 13px ${JP_FONT}`;
   overlayCtx.textAlign = 'center';
   overlayCtx.textBaseline = 'middle';
   overlayCtx.lineWidth = 4;
@@ -1020,7 +1020,7 @@ function renderStageSelect() {
   overlayCtx.lineJoin  = 'round';
 
   // タイトル：黒輪郭付き
-  overlayCtx.font = 'bold 34px "Hiragino Sans","Meiryo",sans-serif';
+  overlayCtx.font = `bold 34px ${JP_FONT}`;
   overlayCtx.lineWidth = 6;
   overlayCtx.strokeStyle = 'rgba(0,0,0,0.9)';
   overlayCtx.strokeText('ステージ選択', 400, 110);
@@ -1066,14 +1066,14 @@ function renderStageSelect() {
     overlayCtx.strokeStyle = 'rgba(0,0,0,0.85)';
 
     // 1行目：第N話
-    overlayCtx.font = 'bold 18px "Hiragino Mincho ProN","YuMincho","Meiryo",serif';
+    overlayCtx.font = `bold 18px ${JP_MINCHO}`;
     overlayCtx.strokeText(STAGE_EPISODES[i], cx, epY);
     overlayCtx.fillStyle = unlocked ? (selected ? '#ffd740' : '#fff') : '#888';
     overlayCtx.fillText(STAGE_EPISODES[i], cx, epY);
 
     // 2行目：タイトル（未解放ステージはネタバレ防止で非表示）
     if (unlocked) {
-      overlayCtx.font = 'bold 22px "Hiragino Mincho ProN","YuMincho","Meiryo",serif';
+      overlayCtx.font = `bold 22px ${JP_MINCHO}`;
       overlayCtx.strokeText(STAGE_TITLES[i], cx, titleY);
       overlayCtx.fillStyle = selected ? '#ffe680' : '#fff';
       overlayCtx.fillText(STAGE_TITLES[i], cx, titleY);
@@ -1084,7 +1084,7 @@ function renderStageSelect() {
     // ステータスバッジ：解放済みなら CLEAR/NEW、未解放なら 🔒
     if (unlocked) {
       const cleared = (i + 1) < unlockedStages;
-      overlayCtx.font = 'bold 12px sans-serif';
+      overlayCtx.font = `bold 12px ${JP_FONT}`;
       overlayCtx.lineWidth = 3;
       overlayCtx.strokeStyle = 'rgba(0,0,0,0.8)';
       overlayCtx.strokeText(cleared ? 'CLEAR' : 'NEW', cx, by + bh - 18);
@@ -1092,14 +1092,14 @@ function renderStageSelect() {
       overlayCtx.fillText(cleared ? 'CLEAR' : 'NEW', cx, by + bh - 18);
       overlayCtx.lineWidth = 1;
     } else {
-      overlayCtx.font = 'bold 28px sans-serif';
+      overlayCtx.font = `bold 28px ${JP_FONT}`;
       overlayCtx.fillStyle = '#222';
       overlayCtx.fillText('🔒', cx, by + bh - 18);
     }
   }
 
   // ヘルプ：黒輪郭付き
-  overlayCtx.font = 'bold 15px sans-serif';
+  overlayCtx.font = `bold 15px ${JP_FONT}`;
   overlayCtx.lineWidth = 4;
   overlayCtx.strokeStyle = 'rgba(0,0,0,0.85)';
   overlayCtx.strokeText('A / D : カーソル移動　　Space : 決定', 400, 430);
@@ -1114,7 +1114,7 @@ function renderStageSelect() {
 function renderChoice() {
   gameCtx.fillStyle = '#0a0a12'; gameCtx.fillRect(0, 0, 800, 600);
   overlayCtx.textAlign = 'center';
-  overlayCtx.font = `bold 28px "Hiragino Sans","Meiryo",sans-serif`;
+  overlayCtx.font = `bold 28px ${JP_FONT}`;
   overlayCtx.fillStyle = '#ffd740';
   overlayCtx.fillText('どうする？', 400, 230);
 
@@ -1127,12 +1127,12 @@ function renderChoice() {
     overlayCtx.strokeStyle = sel ? '#ffd740' : '#444';
     overlayCtx.lineWidth = 2;
     overlayCtx.strokeRect(cx - bw / 2 + 0.5, cy - bh / 2 + 0.5, bw - 1, bh - 1);
-    overlayCtx.font = `bold 20px "Hiragino Sans","Meiryo",sans-serif`;
+    overlayCtx.font = `bold 20px ${JP_FONT}`;
     overlayCtx.fillStyle = sel ? '#1a1200' : '#aaa';
     overlayCtx.fillText(label, cx, cy + 7);
   });
 
-  overlayCtx.font = 'bold 14px sans-serif'; overlayCtx.fillStyle = '#555';
+  overlayCtx.font = `bold 14px ${JP_FONT}`; overlayCtx.fillStyle = '#555';
   overlayCtx.fillText('A / D : 選択　　Space : 決定', 400, 420);
 }
 
@@ -1150,7 +1150,7 @@ function renderStage5Center() {
   }
   if (alpha > 0) {
     overlayCtx.fillStyle = `rgba(40,40,40,${alpha.toFixed(2)})`;
-    overlayCtx.font = 'bold 36px "Hiragino Sans","Meiryo",sans-serif';
+    overlayCtx.font = `bold 36px ${JP_FONT}`;
     overlayCtx.textAlign = 'center';
     overlayCtx.fillText(STAGE5_CENTER_TEXT, 400, 300);
   }
@@ -1160,11 +1160,11 @@ function renderStage5Center() {
 function renderEnding() {
   gameCtx.fillStyle = '#000'; gameCtx.fillRect(0, 0, 800, 600);
   overlayCtx.textAlign = 'center';
-  overlayCtx.font = `900 72px "Hiragino Mincho ProN","YuMincho","MS PMincho",serif`;
+  overlayCtx.font = `900 72px ${JP_MINCHO}`;
   overlayCtx.fillStyle = '#ffd740';
   overlayCtx.fillText('-完-', 400, 310);
   if (game.endingReady) {
-    overlayCtx.font = 'bold 20px sans-serif'; overlayCtx.fillStyle = '#ffd740';
+    overlayCtx.font = `bold 20px ${JP_FONT}`; overlayCtx.fillStyle = '#ffd740';
     if (Math.sin(performance.now() / 400) > 0.2) overlayCtx.fillText('Press Any Key', 400, 400);
   }
 }
@@ -1174,7 +1174,7 @@ function renderPrologue() {
   gameCtx.fillStyle = '#000';
   gameCtx.fillRect(0, 0, 800, 600);
   overlayCtx.textAlign = 'center';
-  overlayCtx.font = '22px "Hiragino Sans","Meiryo",sans-serif';
+  overlayCtx.font = `22px ${JP_FONT}`;
   overlayCtx.fillStyle = 'rgba(255,255,255,0.6)';
   overlayCtx.fillText('俺の寿司の話をしよう。', 400, 270);
   overlayCtx.fillText('長い、長い話だ。', 400, 310);
@@ -1189,7 +1189,7 @@ function renderPrologue() {
     overlayCtx.strokeRect(bx, by, bw, bh);
     overlayCtx.fillStyle = '#ffd740';
     overlayCtx.fillRect(bx + 2, by + 2, (bw - 4) * ratio, bh - 4);
-    overlayCtx.font = 'bold 12px monospace';
+    overlayCtx.font = `bold 12px ${JP_MONO_FONT}`;
     overlayCtx.fillStyle = 'rgba(255,255,255,0.6)';
     overlayCtx.fillText(`Loading... ${done} / ${total}`, 400, 450);
     overlayCtx.lineWidth = 1;
@@ -1199,7 +1199,7 @@ function renderPrologue() {
       overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.55)';
       roundedRect(overlayCtx, 220, 416, 360, 40, 10);
       overlayCtx.fill();
-      overlayCtx.font = 'bold 20px sans-serif';
+      overlayCtx.font = `bold 20px ${JP_FONT}`;
       overlayCtx.fillStyle = '#ffd740';
       overlayCtx.fillText('Press Any Key', 400, 442);
     }
@@ -1233,7 +1233,7 @@ function renderTitle() {
     roundedRect(overlayCtx, 220, 506, 360, 40, 10);
     overlayCtx.fill();
     overlayCtx.textAlign = 'center';
-    overlayCtx.font = 'bold 20px sans-serif';
+    overlayCtx.font = `bold 20px ${JP_FONT}`;
     overlayCtx.fillStyle = '#ffd740';
     overlayCtx.fillText('Press Any Key', 400, 532);
   }
@@ -1275,9 +1275,9 @@ function renderBill() {
   }
 
   // タイトル
-  overlayCtx.font = 'bold 28px sans-serif';
+  overlayCtx.font = `bold 28px ${JP_FONT}`;
   strokeFill('お 会 計', 400, 88, '#ffd740', 5);
-  overlayCtx.font = 'bold 14px sans-serif';
+  overlayCtx.font = `bold 14px ${JP_FONT}`;
   strokeFill('── 本日の皿価格 ──', 400, 112, '#fff', 3);
 
   const positions = [];
@@ -1298,10 +1298,10 @@ function renderBill() {
       overlayCtx.fillStyle = PLATE_COLORS[pi]; overlayCtx.fillRect(px, py - 6, 14, 14);
     }
     // 皿名+価格
-    overlayCtx.font = 'bold 14px sans-serif';
+    overlayCtx.font = `bold 14px ${JP_FONT}`;
     strokeFill(PLATE_NAMES[pi] + ' : ' + game.gamePrices[pi] + '円', px + 18, py + 6, '#fff', 3);
     // ネタ一覧
-    overlayCtx.font = 'bold 12px sans-serif';
+    overlayCtx.font = `bold 12px ${JP_FONT}`;
     const group = groups[pi];
     if (!group.length) {
       strokeFill('（なし）', px + 10, py + 22, '#aaa', 2.5);
@@ -1319,7 +1319,7 @@ function renderBill() {
   // 合計
   if (game.billListDone) {
     overlayCtx.textAlign = 'center';
-    overlayCtx.font = 'bold 30px sans-serif';
+    overlayCtx.font = `bold 30px ${JP_FONT}`;
     strokeFill('合計: ' + game.billTotal + '円', 400, 460, '#fff', 5);
   }
 
@@ -1328,7 +1328,7 @@ function renderBill() {
     overlayCtx.fillStyle = 'rgba(0,0,0,0.6)';
     roundedRect(overlayCtx, 160, 510, 480, 38, 10);
     overlayCtx.fill();
-    overlayCtx.font = 'bold 20px sans-serif';
+    overlayCtx.font = `bold 20px ${JP_FONT}`;
     overlayCtx.textAlign = 'center';
     strokeFill('Press Any Key', 400, 535, '#ffd740', 4);
   }
@@ -1382,18 +1382,18 @@ function renderResult() {
     overlayCtx.fillText(text, x, y);
   }
 
-  overlayCtx.font = 'bold 28px sans-serif';
+  overlayCtx.font = `bold 28px ${JP_FONT}`;
   strokeFill('結 果 発 表', 400, 80, '#ffd740', 5);
-  if (game.resultPhase >= 1) { overlayCtx.font = 'bold 18px sans-serif'; strokeFill('食べた皿数: ' + game.eaten.length + '皿', 400, 120, '#fff'); }
-  if (game.resultPhase >= 2) { overlayCtx.font = 'bold 18px sans-serif'; strokeFill('合計金額: ' + game.billTotal + '円', 400, 150, '#fff'); }
-  if (game.resultPhase >= 3) { overlayCtx.font = 'bold 18px sans-serif'; strokeFill('素の満足度: ' + Math.round(game.sat), 400, 180, '#ffce6b'); }
+  if (game.resultPhase >= 1) { overlayCtx.font = `bold 18px ${JP_FONT}`; strokeFill('食べた皿数: ' + game.eaten.length + '皿', 400, 120, '#fff'); }
+  if (game.resultPhase >= 2) { overlayCtx.font = `bold 18px ${JP_FONT}`; strokeFill('合計金額: ' + game.billTotal + '円', 400, 150, '#fff'); }
+  if (game.resultPhase >= 3) { overlayCtx.font = `bold 18px ${JP_FONT}`; strokeFill('素の満足度: ' + Math.round(game.sat), 400, 180, '#ffce6b'); }
 
   if (game.resultPhase >= 4) {
     if (over10k) {
-      overlayCtx.font = 'bold 17px sans-serif';
+      overlayCtx.font = `bold 17px ${JP_FONT}`;
       strokeFill('10,000円超過！！', 400, 215, '#ff6666');
     } else {
-      overlayCtx.font = 'bold 16px sans-serif';
+      overlayCtx.font = `bold 16px ${JP_FONT}`;
       const pm = game.priceMult;
       const budget = game.budget ?? 3000;
       if (budget > 0) {
@@ -1412,13 +1412,13 @@ function renderResult() {
     if      (pl < lo)  { label = '物足りない…（×' + game.fullnessMult.toFixed(2) + '）'; color = '#ffae5a'; }
     else if (pl <= hi) { label = '満腹！（補正なし）';                                    color = '#a4d96a'; }
     else               { label = '食べすぎた…！（×' + game.fullnessMult.toFixed(1) + '）'; color = '#ffae5a'; }
-    overlayCtx.font = 'bold 16px sans-serif';
+    overlayCtx.font = `bold 16px ${JP_FONT}`;
     strokeFill('満腹度補正: ' + pl + '皿 → ' + label, 400, 245, color);
   }
 
   if (game.resultPhase >= 6) {
     const sc = game.score;
-    overlayCtx.font = 'bold 76px sans-serif';
+    overlayCtx.font = `bold 76px ${JP_FONT}`;
     strokeFill(String(sc), 400, 340, sc === 0 ? '#ff6666' : '#ffd740', 8);
 
     let rankText = '', rankColor = '#ff9800';
@@ -1429,11 +1429,11 @@ function renderResult() {
     else if (sc >= 420)  { rankText = '並：まあ……こんなもんかなあ';                     rankColor = '#fff';    }
     else                 { rankText = '下：あんまり良くなかった……';                     rankColor = '#ccc';    }
 
-    overlayCtx.font = 'bold 17px sans-serif';
+    overlayCtx.font = `bold 17px ${JP_FONT}`;
     const colonIdx = rankText.indexOf('：');
     if (rankText.length > 25) {
       strokeFill(rankText.slice(0, colonIdx + 1), 400, 385, rankColor);
-      overlayCtx.font = 'bold 15px sans-serif';
+      overlayCtx.font = `bold 15px ${JP_FONT}`;
       strokeFill(rankText.slice(colonIdx + 1), 400, 405, rankColor);
     } else {
       strokeFill(rankText, 400, 390, rankColor);
@@ -1446,7 +1446,7 @@ function renderResult() {
       overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.55)';
       roundedRect(overlayCtx, 220, 518, 360, 40, 10);
       overlayCtx.fill();
-      overlayCtx.font = 'bold 20px sans-serif';
+      overlayCtx.font = `bold 20px ${JP_FONT}`;
       strokeFill('Press Any Key', 400, 544, '#ffd740');
     }
   }

@@ -52,10 +52,10 @@ function debugExportNetaSheet() {
     ctx.drawImage(pixelCanvas, 5, 3, 10, 7, cx + (cellW - 144) / 2, cy + 16, 144, 100);
 
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 16px sans-serif';
+    ctx.font = `bold 16px ${JP_FONT}`;
     ctx.textAlign = 'center';
     ctx.fillText(neta.nm, cx + cellW / 2, cy + cellH - 26);
-    ctx.font = '12px monospace';
+    ctx.font = `12px ${JP_MONO_FONT}`;
     ctx.fillStyle = '#aaa';
     ctx.fillText(fileName + '.png', cx + cellW / 2, cy + cellH - 8);
   }
@@ -128,10 +128,10 @@ function debugExportCharacterTemplate() {
 
   // テキスト案内
   ctx.fillStyle = 'rgba(120,120,170,0.7)';
-  ctx.font = 'bold 14px sans-serif';
+  ctx.font = `bold 14px ${JP_FONT}`;
   ctx.textAlign = 'center';
   ctx.fillText('400 × 740  (game display: 200 × 370)', W / 2, 26);
-  ctx.font = '12px sans-serif';
+  ctx.font = `12px ${JP_FONT}`;
   ctx.fillText('character template (transparent bg)', W / 2, 46);
   ctx.fillText('save as: ore_normal.png / taisho_smile.png ...', W / 2, H - 14);
 

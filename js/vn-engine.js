@@ -226,9 +226,9 @@ function drawVNChar(x, name, expression, dimmed) {
   overlayCtx.strokeStyle = 'rgba(255,255,255,0.15)'; overlayCtx.lineWidth = 1;
   roundedRect(overlayCtx, x, y, w, h, 8); overlayCtx.stroke();
   overlayCtx.fillStyle = 'rgba(255,255,255,0.7)';
-  overlayCtx.font = 'bold 16px sans-serif'; overlayCtx.textAlign = 'center';
+  overlayCtx.font = `bold 16px ${JP_FONT}`; overlayCtx.textAlign = 'center';
   overlayCtx.fillText(name, x + w / 2, y + h / 2 - 8);
-  overlayCtx.font = '13px sans-serif'; overlayCtx.fillStyle = 'rgba(255,255,255,0.4)';
+  overlayCtx.font = `13px ${JP_FONT}`; overlayCtx.fillStyle = 'rgba(255,255,255,0.4)';
   overlayCtx.fillText(expression, x + w / 2, y + h / 2 + 14);
   // 発言していない側は黒い半透明レイヤーを重ねて暗く
   if (dimmed) {
@@ -250,14 +250,14 @@ function renderVNDialog() {
   // 話者名
   let textY = by + 26;
   if (speaker) {
-    overlayCtx.font = 'bold 16px sans-serif'; overlayCtx.fillStyle = '#ffd740';
+    overlayCtx.font = `bold 16px ${JP_FONT}`; overlayCtx.fillStyle = '#ffd740';
     overlayCtx.textAlign = 'left';
     overlayCtx.fillText(speaker, bx + 18, by + 24);
     textY = by + 50;
   }
 
   // 本文（改行対応）
-  overlayCtx.font = '18px sans-serif'; overlayCtx.fillStyle = '#fff';
+  overlayCtx.font = `18px ${JP_FONT}`; overlayCtx.fillStyle = '#fff';
   overlayCtx.textAlign = 'left';
   text.split('\n').forEach((line, i) => {
     overlayCtx.fillText(line.trim(), bx + 18, textY + i * 28);
@@ -266,7 +266,7 @@ function renderVNDialog() {
   // 次へ▼（フェード完了後のみ点滅）
   const fadeDone = Math.abs(vn.fadeAlpha - vn.fadeTarget) < 0.01;
   if (fadeDone && Math.sin(performance.now() / 320) > 0) {
-    overlayCtx.font = '14px sans-serif'; overlayCtx.fillStyle = '#ffd740';
+    overlayCtx.font = `14px ${JP_FONT}`; overlayCtx.fillStyle = '#ffd740';
     overlayCtx.textAlign = 'right';
     overlayCtx.fillText('▼', bx + bw - 14, by + bh - 10);
   }
