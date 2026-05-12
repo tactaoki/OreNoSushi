@@ -1,6 +1,6 @@
 ﻿stage,age,label,maxPlateRank,budget,irritateRate,beltSpeed,maxFull,scoreMode,tea,gari,fadeout
-1,20,新卒,2,3300,1,52,25,quantity,FALSE,FALSE,FALSE
-2,30,30代,3,3700,3,56,22,costperformance,TRUE,FALSE,FALSE
+1,20,新卒,2,3000,1,52,25,quantity,FALSE,FALSE,FALSE
+2,30,30代,3,4000,3,56,22,costperformance,TRUE,FALSE,FALSE
 3,40,40代,4,5000,8,62,20,price,TRUE,TRUE,FALSE
 4,50,50代,5,6000,4,56,15,combo,TRUE,TRUE,FALSE
 5,60,定年,5,0,1,36,999,freeplay,TRUE,TRUE,TRUE
